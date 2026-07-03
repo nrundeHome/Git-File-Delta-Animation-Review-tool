@@ -196,16 +196,16 @@ const APP_CSS = `
   color: var(--text);
   background: var(--bg);
   display: grid;
-  grid-template-rows: 42px 1fr 194px;
-  grid-template-columns: 204px 1fr;
+  grid-template-rows: 42px minmax(250px, 1fr) 194px;
+  grid-template-columns: clamp(200px, 15vw, 300px) 1fr;
   grid-template-areas:
     "toolbar toolbar"
     "sidebar main"
     "timeline timeline";
-  min-height: 600px;
+  height: 100%;
+  overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 0 0 8px 8px;
-  overflow: hidden;
   position: relative;
 }
 
@@ -236,6 +236,9 @@ const APP_CSS = `
 /* ── Toolbar ── */
 .dc-toolbar {
   grid-area: toolbar;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
@@ -559,6 +562,9 @@ const APP_CSS = `
 /* ── Timeline ── */
 .dc-timeline {
   grid-area: timeline;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
   background: var(--surface);
   border-top: 1px solid var(--border);
   display: grid;
