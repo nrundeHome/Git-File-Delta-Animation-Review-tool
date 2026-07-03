@@ -123,6 +123,7 @@ const prData = {
   frameModel:        frameModelObj,
   commitRiskScores,
   dangerousWindows,
+  headBranch:        'feature/jwt-auth',
   truncated:         false,
   totalCommits:      enriched.length,
   tier:              'pro',
@@ -135,7 +136,7 @@ const host   = document.getElementById('host')
 const shadow = host.attachShadow({ mode: 'open' })
 
 try {
-  mountApp(shadow, prData, { owner: 'test-org', repo: 'fixture-repo', prNumber: 42 })
+  mountApp(shadow, prData, { owner: 'test-org', repo: 'fixture-repo', prNumber: 42, headBranch: prData.headBranch })
 
   // Expose to Playwright via window
   window.__shadow      = shadow

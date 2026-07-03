@@ -2,7 +2,7 @@
 // Per ADR-001 (MV3): all API calls originate here, never from content scripts
 // Per ADR-004: PAT stored in chrome.storage.local, token never sent to DiffCast servers
 
-import { getPRCommits, getCommitFiles, getAuthorChurn, validateLicense, validateGithubToken } from './services/githubApi.js'
+import { getPRCommits, getPRMetadata, getCommitFiles, getAuthorChurn, validateLicense, validateGithubToken } from './services/githubApi.js'
 import { buildFrameModel, detectDangerousWindows } from './services/diffParser.js'
 import { commitRiskScore, fileTypeWeight, riskScore } from './utils/riskCalculator.js'
 import { CACHE_TTL, FREE_TIER } from './config/api.js'
@@ -40,8 +40,12 @@ async function handleMessage(msg, _sender) {
 async function loadPR(owner, repo, prNumber) {
   const tier = await getTier()
 
-  // Fetch commit list
-  const rawCommits = await getPRCommits(owner, repo, prNumber)
+  // Fetch commit list and PR metadata in parallel
+  const [rawCommits, prMeta] = await Promise.all([
+    getPRCommits(owner, repo, prNumber),
+    getPRMetadata(owner, repo, prNumber).catch(() => null),
+  ])
+  const headBranch = prMeta?.head?.ref ?? ''
 
   // Gate: free tier limits
   const commits = tier.tier === 'free'
@@ -94,6 +98,7 @@ async function loadPR(owner, repo, prNumber) {
     frameModel:     mapToObject(frameModel),
     dangerousWindows,
     commitRiskScores,
+    headBranch,
     truncated:      tier.tier === 'free' && rawCommits.length > FREE_TIER.MAX_COMMITS,
     totalCommits:   rawCommits.length,
     tier:           tier.tier,
@@ -274,6 +279,7 @@ const MOCK_PR_DATA = (() => {
       description: 'JWT auth added without role check — all authenticated users had full access between commits 1 and 2.',
     }],
     commitRiskScores: [82, 71, 38],
+    headBranch:   'feature/jwt-auth',
     truncated:    false,
     totalCommits: 3,
     tier:         'free',

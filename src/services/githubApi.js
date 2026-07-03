@@ -90,6 +90,15 @@ export async function getPRCommits(owner, repo, prNumber) {
 }
 
 /**
+ * Get PR metadata: title, state, head/base branches.
+ * Returns { number, title, state, head: { ref }, base: { ref } }
+ */
+export async function getPRMetadata(owner, repo, prNumber) {
+  const key = `pr:${owner}/${repo}:${prNumber}:meta`
+  return cachedFetch(key, `/repos/${owner}/${repo}/pulls/${prNumber}`, CACHE_TTL.COMMIT_LIST)
+}
+
+/**
  * Get files changed in a commit, including unified diff patches.
  * Returns { sha, files: [{ filename, patch, additions, deletions, status }] }
  */

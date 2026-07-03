@@ -14,7 +14,7 @@ let _splitOn, _curView, _engine
 let _autoSplit, _autoSplitTimer, _toastTimer
 
 // ── Entry point ───────────────────────────────────────────────────────────
-export function mountApp(shadow, prData, { owner, repo, prNumber }) {
+export function mountApp(shadow, prData, { owner, repo, prNumber, headBranch = '' }) {
   _shadow = shadow
 
   const { commits, frameModel, commitRiskScores, dangerousWindows, truncated, totalCommits, tier } = prData
@@ -51,7 +51,7 @@ export function mountApp(shadow, prData, { owner, repo, prNumber }) {
   const root = document.createElement('div')
   root.className = 'dc-app'
   root.setAttribute('data-view', 'james')
-  root.innerHTML = buildHTML({ fileKeys: _fileKeys, commits, commitRiskScores, dangerousWindows: _dangerousWindows, truncated, totalCommits, tier, owner, repo, prNumber })
+  root.innerHTML = buildHTML({ fileKeys: _fileKeys, commits, commitRiskScores, dangerousWindows: _dangerousWindows, truncated, totalCommits, tier, owner, repo, prNumber, headBranch })
   shadow.appendChild(root)
 
   // Init
@@ -70,7 +70,7 @@ export function mountApp(shadow, prData, { owner, repo, prNumber }) {
 }
 
 // ── HTML builder ──────────────────────────────────────────────────────────
-function buildHTML({ fileKeys, commits, commitRiskScores, dangerousWindows, truncated, totalCommits, tier, owner, repo, prNumber }) {
+function buildHTML({ fileKeys, commits, commitRiskScores, dangerousWindows, truncated, totalCommits, tier, owner, repo, prNumber, headBranch }) {
   return `
 <div class="dc-toolbar">
   <div class="dc-logo"><div class="dc-orb"></div>DiffCast</div>
@@ -80,7 +80,14 @@ function buildHTML({ fileKeys, commits, commitRiskScores, dangerousWindows, trun
     <button class="vt-btn" id="btnNeil" data-testid="view-btn-author">✍ Author</button>
   </div>
   <div class="toolbar-sep"></div>
-  <div class="tb-stat" id="prMeta">${esc(owner)}/${esc(repo)} #${esc(String(prNumber))}</div>
+  <div class="tb-breadcrumb" id="prMeta" data-testid="pr-breadcrumb">
+    <span class="bc-repo" data-testid="bc-repo">${esc(owner)}/${esc(repo)}</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-branch" data-testid="bc-branch">${esc(headBranch || '—')}</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-pr" data-testid="bc-pr">#${esc(String(prNumber))}</span>
+    <button class="bc-switch" id="bcSwitch" data-testid="bc-switch" title="Load a different PR">⬆</button>
+  </div>
   <div class="tb-right">
     <div id="splitBtnWrap">
       <span class="split-btn-notice" id="splitNotice"></span>
@@ -265,6 +272,27 @@ const APP_CSS = `
 .toolbar-sep { width: 1px; height: 20px; background: var(--border); }
 .tb-stat { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; }
 .tb-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+/* PR breadcrumb */
+.tb-breadcrumb {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; min-width: 0;
+}
+.bc-repo { color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.bc-sep  { color: var(--border-hi); flex-shrink: 0; }
+.bc-branch {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-dim); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 140px;
+}
+.bc-pr { color: var(--accent); font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.bc-switch {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 6px; font-size: 10px;
+  color: var(--text-dim); cursor: pointer; flex-shrink: 0; line-height: 1;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.bc-switch:hover { background: var(--panel); color: var(--text); border-color: var(--accent); }
 
 /* view toggle */
 .view-toggle {

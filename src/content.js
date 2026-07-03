@@ -116,7 +116,7 @@ async function mountOverlay(owner, repo, prNumber) {
 
     // Dynamically import the DiffCast app module and mount it
     const { mountApp } = await import('./diffcast/app.js')
-    mountApp(shadow, data, { owner, repo, prNumber })
+    mountApp(shadow, data, { owner, repo, prNumber, headBranch: data.headBranch ?? '' })
 
   } catch (err) {
     shadow.innerHTML = errorHTML(err.message)
