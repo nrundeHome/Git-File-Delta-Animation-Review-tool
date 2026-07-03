@@ -24,54 +24,26 @@ async function connect() {
     return
   }
 
-  // Test the token with a lightweight API call before saving
-  try {
-    const res = await fetch('https://api.github.com/user', {
-      headers: {
-        'Authorization':        `Bearer ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    })
+  // Validate via background service worker — uses githubApi wrapper (no bare fetch here)
+  // RULE-05: error messages are user-friendly, no raw JSON ever shown
+  const result = await chrome.runtime.sendMessage({ type: 'VALIDATE_TOKEN', token })
 
-    if (!res.ok) {
-      // RULE-05: inline error, no raw JSON shown
-      errEl.textContent = res.status === 401
-        ? 'Token is invalid or expired'
-        : `GitHub returned ${res.status} — check token scopes`
-      errEl.classList.add('show')
-      return
-    }
-
-    const user = await res.json()
-    if (typeof user !== 'object' || !user.login) {
-      // RULE-05: raw JSON guard
-      errEl.textContent = 'Unexpected response from GitHub — please try again'
-      errEl.classList.add('show')
-      return
-    }
-
-    await chrome.runtime.sendMessage({ type: 'SET_TOKEN', token })
-    await showConnected(token, user.login)
-    input.value = ''
-
-  } catch (err) {
-    errEl.textContent = 'Network error — check your connection'
+  if (!result.ok) {
+    errEl.textContent = result.error ?? 'Could not validate token'
     errEl.classList.add('show')
+    return
   }
+
+  await chrome.runtime.sendMessage({ type: 'SET_TOKEN', token })
+  await showConnected(token, result.login)
+  input.value = ''
 }
 
 async function showConnected(token, login) {
-  // Fetch user info if login not passed
+  // Fetch user info if login not passed — route through background service worker
   if (!login) {
-    try {
-      const res = await fetch('https://api.github.com/user', {
-        headers: { 'Authorization': `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28' },
-      })
-      if (res.ok) {
-        const user = await res.json()
-        login = user.login
-      }
-    } catch (_) {}
+    const result = await chrome.runtime.sendMessage({ type: 'VALIDATE_TOKEN', token }).catch(() => null)
+    if (result?.ok) login = result.login
   }
 
   document.getElementById('statusDot').className  = 'status-dot connected'

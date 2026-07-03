@@ -1351,7 +1351,7 @@ function buildSparkline() {
     const score = _commitRiskScores[i] ?? 0
     const h     = (score / 100) * SPK_H
     const y     = SPK_H - h
-    const col   = score >= 67 ? '#cf222e' : score >= 34 ? '#9a6700' : '#1a7f37'
+    const col   = score >= 67 ? 'var(--risk-hi-d)' : score >= 34 ? 'var(--risk-md-d)' : 'var(--risk-lo-d)'
     ;[dim, fill].forEach((g, gi) => {
       const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
       r.setAttribute('x', `calc(${x}% - ${bw / 2}px)`)

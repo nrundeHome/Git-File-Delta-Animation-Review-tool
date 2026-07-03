@@ -114,6 +114,38 @@ export async function getAuthorChurn(owner, repo, filepath, authorLogin) {
 }
 
 /**
+ * Validate a GitHub PAT before saving it to storage.
+ * Accepts the token as a parameter (not from storage — used during connect flow).
+ * Returns { ok: boolean, login?: string, error?: string }
+ */
+export async function validateGithubToken(token) {
+  try {
+    const res = await fetch(`${GITHUB_API_BASE}/user`, {
+      headers: {
+        'Authorization':        `Bearer ${token}`,
+        'X-GitHub-Api-Version': GITHUB_API_VERSION,
+        'Accept':               'application/vnd.github+json',
+      },
+    })
+    if (!res.ok) {
+      return {
+        ok:    false,
+        error: res.status === 401
+          ? 'Token is invalid or expired'
+          : `GitHub returned ${res.status} — check token scopes`,
+      }
+    }
+    const user = await res.json()
+    if (typeof user !== 'object' || !user.login) {
+      return { ok: false, error: 'Unexpected response from GitHub — please try again' }
+    }
+    return { ok: true, login: user.login }
+  } catch {
+    return { ok: false, error: 'Network error — check your connection' }
+  }
+}
+
+/**
  * Validate a DiffCast Pro license key (Phase 3).
  * Returns { valid: boolean, tier: 'free'|'pro'|'team', seats: number }
  */

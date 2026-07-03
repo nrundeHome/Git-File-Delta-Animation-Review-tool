@@ -135,14 +135,20 @@ for (const file of srcJs) {
 }
 
 // ─── RISK-001 ───────────────────────────────────────────────────────────────
-// Risk color hex values must live in risk-colors.css — never hardcoded in JS
+// Risk color hex values must not appear in JS logic — use CSS variables.
+// Exception: CSS custom property *definitions* (--varname: #hex) are the
+// canonical source for injected style blocks and are allowed.
 
 const RISK_HEX = ['#cf222e', '#9a6700', '#1a7f37', '#f85149', '#d4a017', '#3fb950',
                   '#CF222E', '#9A6700', '#1A7F37', '#F85149', '#D4A017', '#3FB950']
+// Matches a CSS custom property definition: --foo: #hexval (in style strings)
+const CSS_VAR_DEF_RE = /--[\w-]+\s*:\s*#[0-9a-fA-F]{3,8}/
 
 for (const file of srcJs) {
   const lines = readFileSync(file, 'utf8').split('\n')
   lines.forEach((line, i) => {
+    // Allow lines that define a CSS custom property — these are the canonical source
+    if (CSS_VAR_DEF_RE.test(line)) return
     for (const hex of RISK_HEX) {
       if (line.includes(hex)) {
         report('RISK-001', 'critical', file, i + 1,

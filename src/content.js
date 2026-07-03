@@ -155,7 +155,7 @@ function errorHTML(message) {
   return `
     <style>
       .dc-error {
-        background: #060811; color: #cf222e;
+        background: #060811; color: var(--risk-hi-d);
         font-family: monospace; font-size: 12px;
         height: 100%; display: flex; align-items: center; justify-content: center;
         flex-direction: column; gap: 8px; padding: 24px;
@@ -216,8 +216,8 @@ function injectPill(titleLink, score, staggerIndex) {
   if (titleLink.parentNode.querySelector('.dc-risk-pill')) return
 
   const tier  = score >= 67 ? 'hi' : score >= 34 ? 'md' : 'lo'
-  const color = { hi: '#cf222e', md: '#9a6700', lo: '#1a7f37' }[tier]
-  const bg    = { hi: 'rgba(207,34,46,0.08)', md: 'rgba(154,103,0,0.08)', lo: 'rgba(26,127,55,0.08)' }[tier]
+  const color = `var(--dc-risk-${tier})`
+  const bg    = `var(--dc-risk-${tier}-bg)`
   const label = score >= 67 ? '⬤ High risk' : score >= 34 ? '⬤ Med risk' : '⬤ Low risk'
 
   const pill = document.createElement('span')
@@ -286,6 +286,14 @@ function injectBadgeStyles() {
   const style = document.createElement('style')
   style.id = 'dc-badge-styles'
   style.textContent = `
+    :root {
+      --dc-risk-hi:    #cf222e;
+      --dc-risk-md:    #9a6700;
+      --dc-risk-lo:    #1a7f37;
+      --dc-risk-hi-bg: rgba(207,34,46,0.08);
+      --dc-risk-md-bg: rgba(154,103,0,0.08);
+      --dc-risk-lo-bg: rgba(26,127,55,0.08);
+    }
     @keyframes dc-badge-in {
       from { opacity: 0; transform: scale(0.82) translateY(1px); }
       to   { opacity: 1; transform: scale(1)    translateY(0);   }

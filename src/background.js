@@ -2,7 +2,7 @@
 // Per ADR-001 (MV3): all API calls originate here, never from content scripts
 // Per ADR-004: PAT stored in chrome.storage.local, token never sent to DiffCast servers
 
-import { getPRCommits, getCommitFiles, getAuthorChurn, validateLicense } from './services/githubApi.js'
+import { getPRCommits, getCommitFiles, getAuthorChurn, validateLicense, validateGithubToken } from './services/githubApi.js'
 import { buildFrameModel, detectDangerousWindows } from './services/diffParser.js'
 import { commitRiskScore, fileTypeWeight, riskScore } from './utils/riskCalculator.js'
 import { CACHE_TTL, FREE_TIER } from './config/api.js'
@@ -25,6 +25,7 @@ async function handleMessage(msg, _sender) {
       return loadPR(msg.owner, msg.repo, msg.prNumber)
     }
     case 'GET_PR_RISK_BATCH': return getPRRiskBatch(msg.owner, msg.repo, msg.prNumbers)
+    case 'VALIDATE_TOKEN': return validateGithubToken(msg.token)
     case 'SET_TOKEN':     return setToken(msg.token)
     case 'GET_TOKEN':     return getToken()
     case 'CHECK_LICENSE': return checkLicense(msg.key)
