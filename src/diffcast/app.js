@@ -76,15 +76,15 @@ function buildHTML({ fileKeys, commits, commitRiskScores, dangerousWindows, trun
   <div class="dc-logo"><div class="dc-orb"></div>DiffCast</div>
   <div class="toolbar-sep"></div>
   <div class="view-toggle">
-    <button class="vt-btn active" id="btnJames">👁 Reviewer</button>
-    <button class="vt-btn" id="btnNeil">✍ Author</button>
+    <button class="vt-btn active" id="btnJames" data-testid="view-btn-reviewer">👁 Reviewer</button>
+    <button class="vt-btn" id="btnNeil" data-testid="view-btn-author">✍ Author</button>
   </div>
   <div class="toolbar-sep"></div>
   <div class="tb-stat" id="prMeta">${esc(owner)}/${esc(repo)} #${esc(String(prNumber))}</div>
   <div class="tb-right">
     <div id="splitBtnWrap">
       <span class="split-btn-notice" id="splitNotice"></span>
-      <button class="split-btn" id="splitBtn">⊟ <span id="splitBtnLabel">Split view</span></button>
+      <button class="split-btn" id="splitBtn" data-testid="split-btn">⊟ <span id="splitBtnLabel">Split view</span></button>
     </div>
   </div>
 </div>
@@ -93,9 +93,9 @@ function buildHTML({ fileKeys, commits, commitRiskScores, dangerousWindows, trun
   <div class="james-sidebar">
     <div class="sidebar-sec">
       <div class="sidebar-lbl">Changed Files</div>
-      <div id="fileList"></div>
+      <div id="fileList" data-testid="file-list"></div>
     </div>
-    <div class="risk-breakdown">
+    <div class="risk-breakdown" data-testid="risk-breakdown">
       <div class="sidebar-lbl">Risk breakdown</div>
       <div class="rb-row"><span class="rb-lbl hi">HIGH</span><div class="rb-track"><div class="rb-fill" id="rb-hi"></div></div><span class="rb-pct" id="rp-hi">0%</span></div>
       <div class="rb-row"><span class="rb-lbl md">MED</span><div class="rb-track"><div class="rb-fill" id="rb-md"></div></div><span class="rb-pct" id="rp-md">0%</span></div>
@@ -118,19 +118,19 @@ function buildHTML({ fileKeys, commits, commitRiskScores, dangerousWindows, trun
   <div class="code-body" id="codeBody">
     <div class="code-pane">
       <div class="pane-hdr split-pane-header" id="pane1Hdr"></div>
-      <div class="pane-scroll"><table class="diff-table" id="diffTable1"></table></div>
+      <div class="pane-scroll"><table class="diff-table" id="diffTable1" data-testid="diff-table-primary"></table></div>
     </div>
     <div class="code-pane">
       <div class="pane-hdr split-pane-header" id="pane2Hdr"></div>
-      <div class="pane-scroll"><table class="diff-table" id="diffTable2"></table></div>
+      <div class="pane-scroll"><table class="diff-table" id="diffTable2" data-testid="diff-table-secondary"></table></div>
     </div>
   </div>
   <div class="auto-split-notice" id="autoSplitNotice">⊟ Split view — commit touches 2+ high-risk files</div>
-  <div class="dw-toast" id="dwToast">
+  <div class="dw-toast" id="dwToast" data-testid="risk-toast">
     <div class="dw-title" id="dwTitle">⚠ RISK ALERT</div>
     <div class="dw-body" id="dwBody"></div>
   </div>
-  <div class="neil-toast" id="neilToast">
+  <div class="neil-toast" id="neilToast" data-testid="commit-toast">
     <div class="nt-title" id="ntTitle">✓ COMMIT</div>
     <div class="nt-body" id="ntBody"></div>
   </div>
@@ -138,7 +138,7 @@ function buildHTML({ fileKeys, commits, commitRiskScores, dangerousWindows, trun
 
 <div class="dc-timeline">
   <div class="tl-ctrl">
-    <button class="play-btn" id="playBtn"><div class="play-icon"></div></button>
+    <button class="play-btn" id="playBtn" data-testid="play-btn"><div class="play-icon"></div></button>
     <div class="tl-hint">SPC<br>play</div>
   </div>
   <div class="tl-tracks">
@@ -162,16 +162,16 @@ function buildHTML({ fileKeys, commits, commitRiskScores, dangerousWindows, trun
       <div class="slider-row">
         <span class="sl-lbl" id="slLbl">← drag to replay</span>
         <button class="step-btn" id="prevBtn" disabled>◀</button>
-        <input type="range" id="slider" min="0" max="100" value="0">
+        <input type="range" id="slider" min="0" max="100" value="0" data-testid="time-slider">
         <button class="step-btn" id="nextBtn" disabled>▶</button>
       </div>
     </div>
   </div>
   <div class="tl-info">
-    <div class="ci-card">
-      <span class="ci-hash" id="ciHash">——</span>
-      <span class="ci-msg" id="ciMsg">Drag the slider to replay</span>
-      <span class="ci-meta"><span id="ciAuthor">——</span> · <span id="ciTime">——</span></span>
+    <div class="ci-card" data-testid="commit-card">
+      <span class="ci-hash" id="ciHash" data-testid="commit-hash">——</span>
+      <span class="ci-msg" id="ciMsg" data-testid="commit-message">Drag the slider to replay</span>
+      <span class="ci-meta"><span id="ciAuthor" data-testid="commit-author">——</span> · <span id="ciTime">——</span></span>
     </div>
     <div class="touch-list" id="touchList"></div>
   </div>
@@ -1223,6 +1223,8 @@ function buildFileList() {
     const div       = document.createElement('div')
     div.className   = `file-entry${idx === 0 ? ' active' : ''}`
     div.dataset.filepath = filepath
+    div.dataset.testid   = 'file-item'
+    div.setAttribute('data-testid', 'file-item')
     div.addEventListener('click', () => selectFile(filepath))
     div.innerHTML = `
       <div class="fe-row">
@@ -1252,6 +1254,7 @@ function buildNeilSidebar() {
     const div       = document.createElement('div')
     div.className   = 'commit-card-nav'
     div.dataset.cidx = i
+    div.setAttribute('data-testid', 'commit-card-nav')
     div.addEventListener('click', () => jumpTo(i))
     const fileDots  = c.files
       .filter(f => f.additions + f.deletions > 0)

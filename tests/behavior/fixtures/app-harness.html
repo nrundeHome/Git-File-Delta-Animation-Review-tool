@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DiffCast — Behavior Test Harness</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #10121a; }
+    #host { width: 100vw; height: 100vh; display: block; }
+    #harness-status {
+      position: fixed; bottom: 8px; right: 12px; z-index: 9999;
+      font-family: monospace; font-size: 11px; color: #3fb950;
+      background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="host"></div>
+  <div id="harness-status">mounting…</div>
+  <script type="module" src="/tests/behavior/fixtures/app-harness.js"></script>
+</body>
+</html>
