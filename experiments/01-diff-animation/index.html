@@ -42,6 +42,10 @@
   --sidebar-w:   204px;
   --tl-h:        194px;
   --split-active: 0;
+
+  /* code viewer zoom — stepped by setZoom() */
+  --code-sz:     11.5px;
+  --code-lh:     1.75rem;
 }
 
 /* ══════════════════════════════════════════════════
@@ -301,6 +305,33 @@ body {
 #splitBtnWrap { display: none; }
 #splitBtnWrap.visible { display: flex; align-items: center; gap: 8px; }
 
+/* ── code zoom buttons ── */
+.zoom-ctrl { display: flex; align-items: center; gap: 2px; }
+.zoom-btn {
+  font-size: 10px; padding: 3px 7px; border-radius: 4px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  line-height: 1;
+}
+.zoom-btn:hover { background: var(--panel); color: var(--text); }
+.zoom-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+/* ── wide mode ── */
+.wide-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: 4px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.wide-btn:hover { background: var(--panel); color: var(--text); }
+.wide-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+/* wide mode: expand sidebar + remove gh-content width cap */
+.dc-app.wide { --sidebar-w: clamp(200px, 15vw, 320px); }
+body.wide .gh-content { max-width: none; }
+
 /* ── sidebar ── */
 .dc-sidebar {
   grid-area: sidebar;
@@ -455,8 +486,8 @@ body {
   width: 100%;
   border-collapse: collapse;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11.5px; font-weight: 300;
-  line-height: 1.75rem;
+  font-size: var(--code-sz); font-weight: 300;
+  line-height: var(--code-lh);
   padding-bottom: 40px;
 }
 .diff-line { opacity: 0; transition: opacity 0.18s ease, background 0.25s, box-shadow 0.25s; }
@@ -926,6 +957,16 @@ input[type=range]:active::-webkit-slider-thumb { cursor: grabbing; transform: sc
       <div class="tb-stat">8 <span class="tb-hi">high-risk</span> · 12 <span class="tb-md">medium</span> · 21 low lines</div>
 
       <div class="tb-right">
+        <!-- code zoom -->
+        <div class="zoom-ctrl" title="Code density">
+          <button class="zoom-btn" id="zoomOut"  onclick="setZoom(0)">A−</button>
+          <button class="zoom-btn active" id="zoomNorm" onclick="setZoom(1)">A</button>
+          <button class="zoom-btn" id="zoomIn"   onclick="setZoom(2)">A+</button>
+        </div>
+        <div class="toolbar-sep"></div>
+        <!-- wide mode -->
+        <button class="wide-btn" id="wideBtn" onclick="toggleWide()" title="Expand to full viewport width">⊡ Wide</button>
+        <div class="toolbar-sep"></div>
         <button class="load-pr-btn" onclick="toggleLoadPanel()" id="loadPrBtn" title="Load a real GitHub PR">⬆ Load PR</button>
         <div id="splitBtnWrap">
           <span class="split-btn-notice" id="splitNotice">3 files this commit</span>
@@ -2223,7 +2264,42 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft')  stepCommit(-1)
   if (e.key === 's')          toggleSplit()
   if (e.key === 'r')          setView(curView === 'james' ? 'neil' : 'james')
+  if (e.key === '-')          setZoom(Math.max(0, curZoom - 1))
+  if (e.key === '=')          setZoom(Math.min(2, curZoom + 1))
+  if (e.key === 'w')          toggleWide()
 })
+
+// ── Code zoom ────────────────────────────────────────────────────────────────
+// Three density presets: compact (overview), normal (reading), large (focus)
+const ZOOM_LEVELS = [
+  { sz: '9.5px',  lh: '1.3rem'  },  // A−  compact — see more code at once
+  { sz: '11.5px', lh: '1.75rem' },  // A   normal  — default reading size
+  { sz: '14px',   lh: '2.1rem'  },  // A+  large   — detailed line-by-line
+]
+let curZoom = 1
+
+function setZoom(idx) {
+  curZoom = idx
+  const app = document.getElementById('dcApp')
+  app.style.setProperty('--code-sz', ZOOM_LEVELS[idx].sz)
+  app.style.setProperty('--code-lh', ZOOM_LEVELS[idx].lh)
+  document.getElementById('zoomOut').classList.toggle('active',  idx === 0)
+  document.getElementById('zoomNorm').classList.toggle('active', idx === 1)
+  document.getElementById('zoomIn').classList.toggle('active',   idx === 2)
+}
+
+// ── Wide mode ────────────────────────────────────────────────────────────────
+// Removes the 1260px content cap and expands sidebar via CSS class.
+let wideOn = false
+
+function toggleWide() {
+  wideOn = !wideOn
+  document.getElementById('dcApp').classList.toggle('wide', wideOn)
+  document.body.classList.toggle('wide', wideOn)
+  const btn = document.getElementById('wideBtn')
+  btn.classList.toggle('active', wideOn)
+  btn.textContent = wideOn ? '⊡ Contained' : '⊡ Wide'
+}
 
 init()
 </script>
