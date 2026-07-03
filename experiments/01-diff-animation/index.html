@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="en" data-view="james">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiffCast — PR #214</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+
+/* ══════════════════════════════════════════════════
+   ROOT TOKENS — James (dark / clinical)
+══════════════════════════════════════════════════ */
+:root {
+  --bg:          #060811;
+  --surface:     #0b0d1d;
+  --panel:       #0f1226;
+  --border:      #181d38;
+  --border-hi:   #232948;
+  --text:        #aab4d0;
+  --text-dim:    #39415e;
+  --text-bright: #e2e8f8;
+  --accent:      #4f6ef7;
+  --accent-bg:   rgba(79,110,247,0.10);
+  --accent-glow: rgba(79,110,247,0.35);
+
+  --risk-hi:     #cf222e;
+  --risk-hi-bg:  rgba(207,34,46,0.10);
+  --risk-hi-gl:  rgba(207,34,46,0.30);
+  --risk-md:     #9a6700;
+  --risk-md-bg:  rgba(154,103,0,0.10);
+  --risk-md-gl:  rgba(154,103,0,0.28);
+  --risk-lo:     #1a7f37;
+  --risk-lo-bg:  rgba(26,127,55,0.09);
+  --risk-lo-gl:  rgba(26,127,55,0.28);
+
+  --gh-header:   #161b22;
+  --gh-border:   #30363d;
+  --gh-bg:       #0d1117;
+  --gh-text:     #c9d1d9;
+
+  --sidebar-w:   204px;
+  --tl-h:        194px;
+  --split-active: 0;
+}
+
+/* ══════════════════════════════════════════════════
+   NEIL VIEW OVERRIDES (warm editorial)
+══════════════════════════════════════════════════ */
+[data-view="neil"] {
+  --bg:          #f6f4ef;
+  --surface:     #eceae4;
+  --panel:       #e4e1d9;
+  --border:      #d4d0c4;
+  --border-hi:   #c0bbb0;
+  --text:        #3a3628;
+  --text-dim:    #9a9488;
+  --text-bright: #1a1814;
+  --accent:      #2c6e49;
+  --accent-bg:   rgba(44,110,73,0.10);
+  --accent-glow: rgba(44,110,73,0.30);
+
+  --risk-hi:     #b91c1c;
+  --risk-hi-bg:  rgba(185,28,28,0.07);
+  --risk-hi-gl:  rgba(185,28,28,0.20);
+  --risk-md:     #92400e;
+  --risk-md-bg:  rgba(146,64,14,0.07);
+  --risk-md-gl:  rgba(146,64,14,0.20);
+  --risk-lo:     #166534;
+  --risk-lo-bg:  rgba(22,101,52,0.07);
+  --risk-lo-gl:  rgba(22,101,52,0.20);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--gh-bg);
+  color: var(--gh-text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ══════════════════════════════════════════════════
+   FAKE GITHUB CHROME
+══════════════════════════════════════════════════ */
+.gh-header {
+  background: var(--gh-header);
+  border-bottom: 1px solid var(--gh-border);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 20px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.gh-logo { display: flex; align-items: center; gap: 8px; }
+.gh-logo svg { fill: #c9d1d9; }
+.gh-nav { display: flex; gap: 4px; }
+.gh-nav-item {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #c9d1d9;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.gh-nav-item:hover { background: rgba(255,255,255,0.07); }
+.gh-search {
+  flex: 1; max-width: 280px;
+  background: var(--gh-bg);
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  padding: 5px 12px;
+  color: #8b949e;
+  font-size: 12px;
+  font-family: inherit;
+}
+.gh-user { width: 28px; height: 28px; border-radius: 50%; background: #484f58; margin-left: auto; }
+
+.gh-content {
+  max-width: 1260px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 24px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.gh-pr-meta {
+  margin-bottom: 16px;
+}
+.gh-pr-title {
+  font-size: 22px;
+  font-weight: 400;
+  color: #c9d1d9;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gh-pr-num { color: #8b949e; font-weight: 300; }
+.gh-pr-badges { display: flex; align-items: center; gap: 10px; }
+.gh-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11.5px; font-weight: 500;
+  border: 1px solid;
+}
+.gh-badge.open { background: rgba(35,134,54,0.15); border-color: rgba(63,185,80,0.3); color: #3fb950; }
+.gh-badge.review { background: rgba(187,128,9,0.15); border-color: rgba(210,153,34,0.3); color: #d29922; }
+.gh-pr-sub { font-size: 12px; color: #8b949e; }
+.gh-pr-sub strong { color: #c9d1d9; }
+
+/* GitHub-style tabs */
+.gh-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--gh-border);
+  margin-bottom: 0;
+  gap: 0;
+}
+.gh-tab {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #8b949e;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.gh-tab:hover { color: #c9d1d9; }
+.gh-tab.active { color: #c9d1d9; border-bottom-color: #f78166; }
+.gh-tab.injected {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.gh-tab.injected.active { color: #4f6ef7; border-bottom-color: #4f6ef7; }
+.tab-count {
+  background: rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 1px 6px;
+  font-size: 10.5px;
+}
+.injected .tab-count { background: var(--accent-bg); color: var(--accent); }
+.inject-pill {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+  background: var(--accent);
+  color: white;
+  border-radius: 3px;
+  padding: 1px 4px;
+  text-transform: uppercase;
+}
+
+/* ══════════════════════════════════════════════════
+   DIFFCAST APP SHELL
+══════════════════════════════════════════════════ */
+.dc-app {
+  flex: 1;
+  background: var(--bg);
+  display: grid;
+  grid-template-rows: 42px 1fr var(--tl-h);
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-areas:
+    "toolbar toolbar"
+    "sidebar main"
+    "timeline timeline";
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+/* ── toolbar ── */
+.dc-toolbar {
+  grid-area: toolbar;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 14px;
+}
+.dc-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: -0.02em;
+  color: var(--text-bright);
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
+}
+.dc-orb {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* view toggle */
+.view-toggle {
+  display: flex;
+  background: var(--bg);
+  border: 1px solid var(--border-hi);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+.vt-btn {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11.5px; font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  transition: background 0.15s, color 0.15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.vt-btn.active { background: var(--surface); color: var(--text-bright); }
+.vt-btn .vt-icon { font-size: 10px; }
+
+.toolbar-sep { width: 1px; height: 20px; background: var(--border); }
+
+.tb-stat { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; }
+.tb-hi { color: var(--risk-hi); font-weight: 600; }
+.tb-md { color: var(--risk-md); font-weight: 600; }
+
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.split-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-hi);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 11px; font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  font-family: 'DM Sans', sans-serif;
+}
+.split-btn:hover { background: var(--panel); color: var(--text); border-color: var(--accent); }
+.split-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+.split-btn-icon { font-size: 12px; }
+.split-btn-notice {
+  font-size: 9.5px; padding: 2px 7px;
+  background: var(--risk-hi-bg); border: 1px solid var(--risk-hi-gl); border-radius: 3px;
+  color: var(--risk-hi); font-weight: 600; letter-spacing: 0.04em;
+}
+#splitBtnWrap { display: none; }
+#splitBtnWrap.visible { display: flex; align-items: center; gap: 8px; }
+
+/* ── sidebar ── */
+.dc-sidebar {
+  grid-area: sidebar;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* JAMES sidebar */
+.james-sidebar { display: flex; flex-direction: column; }
+[data-view="neil"] .james-sidebar { display: none; }
+
+.sidebar-sec { padding: 10px 0 6px; }
+.sidebar-lbl {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-dim); padding: 0 12px 6px;
+}
+.file-entry {
+  padding: 6px 12px; cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.1s, border-color 0.1s;
+}
+.file-entry:hover { background: var(--panel); }
+.file-entry.active { background: var(--panel); border-left-color: var(--accent); }
+.fe-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.fe-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.fe-lo { background: var(--risk-lo); }
+.fe-md { background: var(--risk-md); }
+.fe-hi { background: var(--risk-hi); }
+.file-entry.active .fe-hi { box-shadow: 0 0 6px var(--risk-hi); }
+.file-entry.active .fe-md { box-shadow: 0 0 6px var(--risk-md); }
+.file-entry.active .fe-lo { box-shadow: 0 0 6px var(--risk-lo); }
+.fe-name { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fe-stat { font-size: 9.5px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+.fe-spark { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.fe-spark-fill { height: 100%; border-radius: 2px; transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
+.fe-cochange { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
+.cochange-pill {
+  font-size: 8.5px; padding: 1px 5px; border-radius: 8px; border: 1px solid;
+  display: none;
+}
+.cochange-pill.show { display: inline-block; }
+.cp-lo { color: var(--risk-lo); border-color: var(--risk-lo-gl); }
+.cp-md { color: var(--risk-md); border-color: var(--risk-md-gl); }
+.cp-hi { color: var(--risk-hi); border-color: var(--risk-hi-gl); }
+
+/* James special: start-here marker */
+.start-here-badge {
+  margin: 8px 12px;
+  background: var(--risk-hi-bg);
+  border: 1px solid var(--risk-hi-gl);
+  border-radius: 5px;
+  padding: 7px 10px;
+  display: none;
+}
+.start-here-badge.show { display: block; }
+.sh-title { font-size: 10px; font-weight: 700; color: var(--risk-hi); letter-spacing: 0.04em; margin-bottom: 3px; }
+.sh-body  { font-size: 10.5px; color: var(--text); line-height: 1.4; }
+
+/* James special: risk breakdown */
+.risk-breakdown { padding: 10px 12px 12px; border-top: 1px solid var(--border); margin-top: auto; }
+.rb-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.rb-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; width: 32px; }
+.rb-lbl.hi { color: var(--risk-hi); } .rb-lbl.md { color: var(--risk-md); } .rb-lbl.lo { color: var(--risk-lo); }
+.rb-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.rb-fill { height: 100%; border-radius: 2px; transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
+.rb-pct { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--text-dim); width: 26px; text-align: right; }
+
+/* NEIL sidebar */
+.neil-sidebar { display: none; flex-direction: column; gap: 0; }
+[data-view="neil"] .neil-sidebar { display: flex; }
+[data-view="neil"] .james-sidebar { display: none; }
+
+.commit-card-nav {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+  border-left: 2px solid transparent;
+}
+.commit-card-nav:hover { background: var(--panel); }
+.commit-card-nav.active { background: var(--panel); border-left-color: var(--accent); }
+.ccn-hash { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--accent); margin-bottom: 3px; }
+.ccn-msg { font-size: 11px; font-weight: 500; color: var(--text-bright); line-height: 1.35; margin-bottom: 4px; }
+.ccn-meta { font-size: 10px; color: var(--text-dim); display: flex; gap: 8px; }
+.ccn-files { display: flex; gap: 3px; margin-top: 4px; }
+.ccn-file-dot { width: 7px; height: 7px; border-radius: 2px; }
+.squash-hint {
+  margin: 4px 12px 8px;
+  background: rgba(250,204,21,0.08);
+  border: 1px solid rgba(250,204,21,0.25);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 10px;
+  color: #ca8a04;
+  display: none;
+}
+.squash-hint.show { display: block; }
+
+/* Arc visualization (Neil) */
+.story-arc {
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+.arc-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.arc-svg-wrap { width: 100%; height: 48px; }
+
+/* ── main code area ── */
+.dc-main {
+  grid-area: main;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  position: relative;
+}
+.code-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 7px 14px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+  position: sticky; top: 0; z-index: 10;
+}
+.filepath { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--text-bright); }
+.ctx-hash { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); }
+.ctx-hash span { color: var(--accent); }
+
+/* SPLIT view */
+.code-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+.code-pane {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  min-width: 0;
+}
+.code-pane + .code-pane {
+  border-left: 1px solid var(--border);
+  display: none;
+}
+.split-active .code-pane + .code-pane { display: block; }
+
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; font-weight: 300;
+  line-height: 1.75rem;
+  padding-bottom: 40px;
+}
+.diff-line { opacity: 0; transition: opacity 0.18s ease, background 0.25s, box-shadow 0.25s; }
+.diff-line.ctx  { opacity: 0.32; }
+.diff-line.visible { opacity: 1; }
+.diff-line.add-lo { background: var(--risk-lo-bg); }
+.diff-line.add-md { background: var(--risk-md-bg); }
+.diff-line.add-hi { background: var(--risk-hi-bg); }
+.diff-line.add-lo.visible { box-shadow: inset 3px 0 0 var(--risk-lo); }
+.diff-line.add-md.visible { box-shadow: inset 3px 0 0 var(--risk-md); }
+.diff-line.add-hi.visible { box-shadow: inset 3px 0 0 var(--risk-hi); }
+.diff-line.del   { background: var(--risk-hi-bg); opacity: 0.35 !important; box-shadow: inset 3px 0 0 rgba(207,34,46,0.3); text-decoration: line-through; }
+
+@keyframes arL { 0%{opacity:0;background:rgba(26,127,55,.32);box-shadow:inset 3px 0 0 var(--risk-lo),0 0 16px var(--risk-lo-gl)}50%{opacity:1}100%{background:var(--risk-lo-bg);box-shadow:inset 3px 0 0 var(--risk-lo)} }
+@keyframes arM { 0%{opacity:0;background:rgba(154,103,0,.36);box-shadow:inset 3px 0 0 var(--risk-md),0 0 16px var(--risk-md-gl)}50%{opacity:1}100%{background:var(--risk-md-bg);box-shadow:inset 3px 0 0 var(--risk-md)} }
+@keyframes arH { 0%{opacity:0;background:rgba(207,34,46,.38);box-shadow:inset 3px 0 0 var(--risk-hi),0 0 22px var(--risk-hi-gl)}50%{opacity:1}100%{background:var(--risk-hi-bg);box-shadow:inset 3px 0 0 var(--risk-hi)} }
+.fl-lo { animation: arL .55s ease forwards; }
+.fl-md { animation: arM .55s ease forwards; }
+.fl-hi { animation: arH .65s ease forwards; }
+
+.td-n { width: 36px; padding: 0 8px 0 0; text-align: right; font-size: 9.5px; color: var(--text-dim); opacity: .45; vertical-align: top; border-right: 1px solid var(--border); user-select: none; }
+.td-g { width: 16px; text-align: center; vertical-align: top; font-size: 10px; user-select: none; }
+.td-g.lo { color: var(--risk-lo); } .td-g.md { color: var(--risk-md); } .td-g.hi { color: var(--risk-hi); }
+.td-c { padding: 0 16px 0 6px; white-space: pre; vertical-align: top; width: 100%; }
+.chunk-sep td { padding: 4px 0; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); }
+.chunk-lbl { padding: 2px 12px; font-size: 9.5px; color: var(--text-dim); font-style: italic; }
+
+/* Neil view: narrative overlay on diff */
+[data-view="neil"] .diff-line.add-lo { background: rgba(22,101,52,0.05); }
+[data-view="neil"] .diff-line.add-md { background: rgba(146,64,14,0.05); }
+[data-view="neil"] .diff-line.add-hi { background: rgba(185,28,28,0.05); }
+
+/* split pane header */
+.split-pane-header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 4px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  display: none;
+  flex-shrink: 0;
+}
+.split-active .split-pane-header { display: block; }
+
+/* FIX-2: 60/40 split ratio */
+.code-pane:first-child { flex: 3; }
+.code-pane:last-child  { flex: 2; }
+
+@media (max-width: 1100px) {
+  .split-active .code-body { flex-direction: column; }
+  .code-pane + .code-pane { border-left: none; border-top: 1px solid var(--border); display: block; }
+}
+
+/* FIX-3: Neil view — commit heading above diff */
+.neil-diff-heading {
+  display: none;
+  font-family: 'Lora', serif;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--text-bright);
+  padding: 11px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.4;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+[data-view="neil"] .neil-diff-heading { display: block; }
+
+/* FIX-1: auto-split notification badge */
+.auto-split-notice {
+  position: absolute;
+  top: 52px; left: 50%; transform: translateX(-50%);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-glow);
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-size: 10.5px; color: var(--accent); font-weight: 600;
+  z-index: 40;
+  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.auto-split-notice.show { opacity: 1; }
+
+/* FIX-4: dangerous window resolved flash */
+@keyframes dwResolve {
+  0%   { background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(207,34,46,0.12) 3px, rgba(207,34,46,0.12) 6px); border-color: var(--risk-hi-gl); }
+  20%  { background: rgba(26,127,55,0.22); border-color: var(--risk-lo); }
+  100% { background: rgba(26,127,55,0.0); border-color: transparent; opacity: 0; }
+}
+.dw-stripe.dw-resolved {
+  animation: dwResolve 1.6s ease-out forwards;
+}
+.dw-stripe-label.closed { color: var(--risk-lo); }
+
+/* dangerous window indicator */
+.dw-toast {
+  position: absolute;
+  top: 52px; right: 14px;
+  background: rgba(207,34,46,0.12);
+  border: 1px solid var(--risk-hi-gl);
+  border-radius: 6px;
+  padding: 8px 12px;
+  z-index: 30;
+  opacity: 0; transform: translateX(6px);
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+  max-width: 220px;
+}
+.dw-toast.show { opacity: 1; transform: none; }
+.dw-title { font-size: 10.5px; font-weight: 700; color: var(--risk-hi); margin-bottom: 3px; letter-spacing: 0.03em; }
+.dw-body  { font-size: 10px; color: var(--text); line-height: 1.4; }
+
+/* Neil toast (positive narrative) */
+.neil-toast {
+  position: absolute;
+  top: 52px; right: 14px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-glow);
+  border-radius: 6px;
+  padding: 8px 12px;
+  z-index: 30;
+  opacity: 0; transform: translateX(6px);
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+  max-width: 220px;
+}
+.neil-toast.show { opacity: 1; transform: none; }
+.nt-title { font-size: 10.5px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+.nt-body  { font-size: 10px; color: var(--text); line-height: 1.4; }
+
+/* syntax */
+.kw { color: #ff7b72; } [data-view="neil"] .kw { color: #b91c1c; }
+.st { color: #a5d6ff; } [data-view="neil"] .st { color: #1e40af; }
+.cm { color: #384562; font-style: italic; } [data-view="neil"] .cm { color: #78716c; font-style: italic; }
+.fn { color: #d2a8ff; } [data-view="neil"] .fn { color: #7c3aed; }
+.nm { color: #f0883e; } [data-view="neil"] .nm { color: #c2410c; }
+.pr { color: #79c0ff; } [data-view="neil"] .pr { color: #0369a1; }
+.op { opacity: 0.45; }
+
+/* ══════════════════════════════════════════════════
+   TIMELINE
+══════════════════════════════════════════════════ */
+.dc-timeline {
+  grid-area: timeline;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 48px 1fr 210px;
+  min-height: 0;
+}
+
+/* left */
+.tl-ctrl {
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px;
+}
+.play-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 14px var(--accent-glow);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.play-btn:hover { transform: scale(1.08); box-shadow: 0 0 22px rgba(79,110,247,.6); }
+.play-icon { width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:9px solid white;margin-left:2px; }
+.play-btn.playing .play-icon { width:8px;height:10px;border:none;border-left:2.5px solid white;border-right:2.5px solid white;margin-left:0; }
+.tl-hint { font-size: 8.5px; color: var(--text-dim); text-align: center; font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
+
+/* center tracks */
+.tl-tracks {
+  display: flex; flex-direction: column;
+  padding: 8px 14px 6px;
+  gap: 2px;
+  position: relative;
+}
+
+/* file lanes */
+.lanes { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+.lane { display: flex; align-items: center; gap: 6px; height: 14px; cursor: pointer; }
+.lane-name { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); width: 118px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.2s; }
+.lane.active .lane-name { color: var(--text-bright); }
+.lane-track { flex: 1; height: 100%; background: var(--panel); border-radius: 3px; position: relative; }
+.act-block {
+  position: absolute; height: 14px; border-radius: 2px; top: 0;
+  transform: translateX(-50%);
+  opacity: 0.14;
+  transition: opacity 0.28s, box-shadow 0.28s;
+}
+.act-block.reached { opacity: 1; }
+.act-block.is-current { box-shadow: 0 0 8px currentColor; }
+.ab-lo { background: var(--risk-lo); color: var(--risk-lo); }
+.ab-md { background: var(--risk-md); color: var(--risk-md); }
+.ab-hi { background: var(--risk-hi); color: var(--risk-hi); }
+
+/* dangerous window stripe on timeline */
+.dw-stripe {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent, transparent 3px,
+    rgba(207,34,46,0.12) 3px, rgba(207,34,46,0.12) 6px
+  );
+  border-left: 1px solid var(--risk-hi-gl);
+  border-right: 1px solid var(--risk-hi-gl);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.dw-stripe.show { opacity: 1; }
+.dw-stripe-label {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--risk-hi);
+  white-space: nowrap;
+  background: var(--surface);
+  padding: 0 4px;
+}
+
+/* sparkline */
+.spk-row { display: flex; align-items: flex-end; gap: 6px; height: 22px; margin-bottom: 4px; }
+.spk-lbl { font-size: 8px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; width: 118px; flex-shrink: 0; text-align: right; padding-right: 6px; display: flex; align-items: flex-end; padding-bottom: 1px; }
+.spk-wrap { flex: 1; height: 22px; position: relative; }
+#spkSvg { width: 100%; height: 100%; overflow: visible; }
+
+/* slider */
+.slider-sec { display: flex; flex-direction: column; gap: 3px; }
+.pip-row { position: relative; height: 18px; margin-left: 124px; }
+.pip { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 2px; transform: translateX(-50%); cursor: pointer; z-index: 2; }
+.pip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--panel); border: 2px solid var(--border-hi); transition: background 0.2s, border-color 0.2s, box-shadow 0.2s; }
+.pip.reached .pip-dot { background: var(--accent); border-color: var(--accent); }
+.pip.current .pip-dot { background: white; border-color: white; box-shadow: 0 0 8px rgba(255,255,255,.5); }
+.pip-lbl { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text-dim); white-space: nowrap; transition: color 0.2s; }
+.pip.reached .pip-lbl { color: var(--text); }
+
+/* dangerous window pip zone */
+.dw-pip-zone {
+  position: absolute;
+  top: 2px; bottom: 2px;
+  background: rgba(207,34,46,0.08);
+  border: 1px dashed var(--risk-hi-gl);
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 1;
+}
+.dw-pip-zone.show { opacity: 1; }
+
+.slider-row { display: flex; align-items: center; gap: 6px; }
+.sl-lbl { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--text-dim); width: 118px; flex-shrink: 0; text-align: right; padding-right: 6px; }
+.step-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  width: 22px; height: 22px; border-radius: 3px; cursor: pointer; font-size: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: color 0.12s, border-color 0.12s; padding: 0; line-height: 1;
+}
+.step-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+.step-btn:disabled { opacity: 0.25; cursor: default; }
+
+input[type=range] {
+  -webkit-appearance: none; flex: 1; height: 3px; border-radius: 2px;
+  background: var(--border-hi); cursor: pointer; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: white; border: 2px solid var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow); margin-top: -5.5px;
+  cursor: grab; transition: box-shadow .15s, transform .1s;
+}
+input[type=range]:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.2); }
+
+/* right: commit info */
+.tl-info {
+  border-left: 1px solid var(--border);
+  padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  overflow: hidden;
+}
+.ci-card {
+  background: var(--panel); border: 1px solid var(--border-hi);
+  border-radius: 5px; padding: 7px 9px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.ci-hash { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--accent); }
+.ci-msg  { font-size: 11px; font-weight: 500; color: var(--text-bright); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ci-meta { font-size: 10px; color: var(--text-dim); }
+.ci-meta span { font-family: 'JetBrains Mono', monospace; }
+
+.touch-list { display: flex; flex-direction: column; gap: 3px; }
+.touch-lbl { font-size: 8.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+.touch-item { display: flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--text); }
+.touch-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.touch-stat { margin-left: auto; font-size: 9px; color: var(--text-dim); }
+
+.tl-legend { margin-top: auto; display: flex; flex-direction: column; gap: 3px; }
+.leg-row { display: flex; align-items: center; gap: 5px; font-size: 9.5px; color: var(--text-dim); }
+.leg-sw { width: 10px; height: 3px; border-radius: 1px; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+/* ── Load PR panel ── */
+.load-pr-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 10.5px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.load-pr-btn:hover { color: var(--accent); border-color: var(--accent); }
+.load-panel-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.load-panel-overlay.open { opacity: 1; pointer-events: all; }
+.load-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  transform: translateY(8px); transition: transform 0.2s;
+}
+.load-panel-overlay.open .load-panel { transform: translateY(0); }
+.lp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.lp-title { font-size: 13px; font-weight: 600; color: var(--text-bright); }
+.lp-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+.lp-close:hover { color: var(--text-bright); }
+.lp-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.lp-label { font-size: 10.5px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+.lp-label code { color: var(--accent); }
+.lp-input {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text-bright);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 4px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.lp-input:focus { border-color: var(--accent); }
+.lp-submit {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.lp-submit:hover { opacity: 0.88; }
+.lp-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.lp-status { font-size: 11px; color: var(--text-dim); min-height: 16px; font-family: 'JetBrains Mono', monospace; }
+.lp-status.err { color: var(--risk-hi); }
+.lp-status.ok  { color: var(--risk-lo); }
+.lp-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  gap: 10px;
+}
+.lp-demo { background: none; border: none; color: var(--accent); font-size: 11px; cursor: pointer; padding: 0; }
+.lp-demo:hover { text-decoration: underline; }
+.lp-note { font-size: 9.5px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; line-height: 1.3; text-align: right; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══ FAKE GITHUB CHROME ═════════════════════════════════════════════════ -->
+<header class="gh-header">
+  <div class="gh-logo">
+    <svg width="24" height="24" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+  </div>
+  <nav class="gh-nav">
+    <div class="gh-nav-item">Pull requests</div>
+    <div class="gh-nav-item">Issues</div>
+    <div class="gh-nav-item">Marketplace</div>
+    <div class="gh-nav-item">Explore</div>
+  </nav>
+  <input class="gh-search" placeholder="Search or jump to…" readonly>
+  <div class="gh-user"></div>
+</header>
+
+<div class="gh-content">
+  <!-- PR meta -->
+  <div class="gh-pr-meta">
+    <div class="gh-pr-title">
+      feat(auth): add JWT middleware, role-based access control &amp; rate limiting
+      <span class="gh-pr-num">#214</span>
+    </div>
+    <div class="gh-pr-badges">
+      <span class="gh-badge open">● Open</span>
+      <span class="gh-badge review">⧖ Review required</span>
+    </div>
+    <div class="gh-pr-sub" style="margin-top:6px">
+      <strong>neil.runde</strong> wants to merge <strong>4 commits</strong> into
+      <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">main</code> from
+      <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">feat/auth-middleware</code>
+    </div>
+  </div>
+
+  <!-- Tab bar with injected DiffCast tab -->
+  <nav class="gh-tabs">
+    <div class="gh-tab">💬 Conversation <span class="tab-count">3</span></div>
+    <div class="gh-tab">⬡ Commits <span class="tab-count">4</span></div>
+    <div class="gh-tab">✓ Checks <span class="tab-count">2</span></div>
+    <div class="gh-tab">⊞ Files changed <span class="tab-count">3</span></div>
+    <div class="gh-tab injected active">
+      ▶ DiffCast
+      <span class="tab-count">4c</span>
+      <span class="inject-pill">ext</span>
+    </div>
+  </nav>
+
+  <!-- ═══ DIFFCAST APP ══════════════════════════════════════════════════════ -->
+  <div class="dc-app" id="dcApp">
+
+    <!-- toolbar -->
+    <div class="dc-toolbar">
+      <div class="dc-logo"><div class="dc-orb"></div>DiffCast</div>
+      <div class="toolbar-sep"></div>
+
+      <!-- view toggle -->
+      <div class="view-toggle">
+        <button class="vt-btn active" id="btnJames" onclick="setView('james')">
+          <span class="vt-icon">👁</span> Reviewer
+        </button>
+        <button class="vt-btn" id="btnNeil" onclick="setView('neil')">
+          <span class="vt-icon">✍</span> Author
+        </button>
+      </div>
+
+      <div class="toolbar-sep"></div>
+      <div class="tb-stat">PR risk: <span class="tb-hi">HIGH</span></div>
+      <div class="tb-stat">8 <span class="tb-hi">high-risk</span> · 12 <span class="tb-md">medium</span> · 21 low lines</div>
+
+      <div class="tb-right">
+        <button class="load-pr-btn" onclick="toggleLoadPanel()" id="loadPrBtn" title="Load a real GitHub PR">⬆ Load PR</button>
+        <div id="splitBtnWrap">
+          <span class="split-btn-notice" id="splitNotice">3 files this commit</span>
+          <button class="split-btn" id="splitBtn" onclick="toggleSplit()">
+            <span class="split-btn-icon">⊟</span>
+            <span id="splitBtnLabel">Split view</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- sidebar -->
+    <div class="dc-sidebar">
+
+      <!-- JAMES sidebar -->
+      <div class="james-sidebar">
+        <div class="sidebar-sec">
+          <div class="sidebar-lbl">Changed Files</div>
+
+          <div class="start-here-badge" id="startHere">
+            <div class="sh-title">▶ START HERE</div>
+            <div class="sh-body">Commit e4f5a6b — JWT + RBAC added together. Highest blast radius.</div>
+          </div>
+
+          <div id="fileList">
+          <div class="file-entry active" onclick="selectFile('middleware',this)">
+            <div class="fe-row"><div class="fe-dot fe-hi"></div><span class="fe-name">auth/middleware.js</span><span class="fe-stat">+82 −18</span></div>
+            <div class="fe-spark"><div class="fe-spark-fill" id="sk-middleware" style="width:0%;background:var(--risk-hi)"></div></div>
+            <div class="fe-cochange" id="cc-middleware"></div>
+          </div>
+          <div class="file-entry" onclick="selectFile('risk',this)">
+            <div class="fe-row"><div class="fe-dot fe-md"></div><span class="fe-name">utils/riskCalculator.js</span><span class="fe-stat">+41 −3</span></div>
+            <div class="fe-spark"><div class="fe-spark-fill" id="sk-risk" style="width:0%;background:var(--risk-md)"></div></div>
+            <div class="fe-cochange" id="cc-risk"></div>
+          </div>
+          <div class="file-entry" onclick="selectFile('config',this)">
+            <div class="fe-row"><div class="fe-dot fe-lo"></div><span class="fe-name">config/api.js</span><span class="fe-stat">+24 −2</span></div>
+            <div class="fe-spark"><div class="fe-spark-fill" id="sk-config" style="width:0%;background:var(--risk-lo)"></div></div>
+            <div class="fe-cochange" id="cc-config"></div>
+          </div>
+          </div>
+        </div>
+
+        <div class="risk-breakdown">
+          <div class="sidebar-lbl" style="padding:0 0 6px">Risk breakdown</div>
+          <div class="rb-row"><span class="rb-lbl hi">HIGH</span><div class="rb-track"><div class="rb-fill" id="rb-hi" style="width:0%;background:var(--risk-hi)"></div></div><span class="rb-pct" id="rp-hi">0%</span></div>
+          <div class="rb-row"><span class="rb-lbl md">MED</span><div class="rb-track"><div class="rb-fill" id="rb-md" style="width:0%;background:var(--risk-md)"></div></div><span class="rb-pct" id="rp-md">0%</span></div>
+          <div class="rb-row"><span class="rb-lbl lo">LOW</span><div class="rb-track"><div class="rb-fill" id="rb-lo" style="width:0%;background:var(--risk-lo)"></div></div><span class="rb-pct" id="rp-lo">0%</span></div>
+        </div>
+      </div>
+
+      <!-- NEIL sidebar -->
+      <div class="neil-sidebar">
+        <div class="sidebar-lbl" style="padding:12px 12px 8px">Commit narrative</div>
+
+        <div class="squash-hint" id="squashHint">
+          ↕ Commits 1–2 are tightly coupled (all 3 files). Consider squashing before requesting review.
+        </div>
+
+        <div id="neilCommitList">
+        <div class="commit-card-nav active" data-cidx="0" onclick="jumpTo(0)">
+          <div class="ccn-hash">a1b2c3d</div>
+          <div class="ccn-msg">chore: project scaffold + dependency setup</div>
+          <div class="ccn-meta"><span>neil.runde</span><span>09:14</span></div>
+          <div class="ccn-files">
+            <div class="ccn-file-dot" style="background:var(--risk-lo)" title="middleware"></div>
+            <div class="ccn-file-dot" style="background:var(--risk-lo)" title="riskCalc"></div>
+            <div class="ccn-file-dot" style="background:var(--risk-lo)" title="config"></div>
+          </div>
+        </div>
+        <div class="commit-card-nav" data-cidx="1" onclick="jumpTo(1)">
+          <div class="ccn-hash">e4f5a6b</div>
+          <div class="ccn-msg">feat(auth): JWT token verification with error handling</div>
+          <div class="ccn-meta"><span>neil.runde</span><span>10:33</span></div>
+          <div class="ccn-files">
+            <div class="ccn-file-dot" style="background:var(--risk-hi)" title="middleware"></div>
+            <div class="ccn-file-dot" style="background:var(--risk-md)" title="riskCalc"></div>
+            <div class="ccn-file-dot" style="background:var(--risk-md)" title="config"></div>
+          </div>
+        </div>
+        <div class="commit-card-nav" data-cidx="2" onclick="jumpTo(2)">
+          <div class="ccn-hash">c7d8e9f</div>
+          <div class="ccn-msg">feat(auth): role-based access control guard middleware</div>
+          <div class="ccn-meta"><span>neil.runde</span><span>11:57</span></div>
+          <div class="ccn-files">
+            <div class="ccn-file-dot" style="background:var(--risk-hi)" title="middleware"></div>
+            <div class="ccn-file-dot" style="background:var(--risk-md)" title="riskCalc"></div>
+            <div class="ccn-file-dot" style="background:var(--risk-md)" title="config"></div>
+          </div>
+        </div>
+        <div class="commit-card-nav" data-cidx="3" onclick="jumpTo(3)">
+          <div class="ccn-hash">b0a1c2d</div>
+          <div class="ccn-msg">feat(auth): rate limiting (60 req/min) + structured audit log</div>
+          <div class="ccn-meta"><span>neil.runde</span><span>14:22</span></div>
+          <div class="ccn-files">
+            <div class="ccn-file-dot" style="background:var(--risk-md)" title="middleware"></div>
+            <div class="ccn-file-dot" style="background:var(--risk-lo)" title="riskCalc"></div>
+            <div class="ccn-file-dot" style="background:var(--risk-lo)" title="config"></div>
+          </div>
+        </div>
+        </div><!-- /neilCommitList -->
+
+        <div class="story-arc">
+          <div class="arc-label">Story arc</div>
+          <div class="arc-svg-wrap">
+            <svg viewBox="0 0 160 48" width="100%" height="48">
+              <defs>
+                <linearGradient id="arcG" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#2c6e49"/>
+                  <stop offset="50%" stop-color="#b91c1c"/>
+                  <stop offset="100%" stop-color="#92400e"/>
+                </linearGradient>
+              </defs>
+              <!-- arc path -->
+              <path d="M 10 44 C 40 44, 50 8, 80 8 C 110 8, 120 20, 150 20"
+                stroke="url(#arcG)" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <!-- phase labels -->
+              <text x="10" y="47" font-size="7" fill="#9a9488" font-family="DM Sans">scaffold</text>
+              <text x="62" y="6" font-size="7" fill="#b91c1c" font-family="DM Sans">auth</text>
+              <text x="124" y="18" font-size="7" fill="#92400e" font-family="DM Sans">rate limit</text>
+              <!-- dots -->
+              <circle cx="10"  cy="44" r="3" fill="#2c6e49"/>
+              <circle cx="57"  cy="12" r="3" fill="#b91c1c"/>
+              <circle cx="104" cy="8"  r="3" fill="#b91c1c"/>
+              <circle cx="150" cy="20" r="3" fill="#92400e"/>
+              <!-- active dot (moves with current commit) -->
+              <circle id="arcDot" cx="10" cy="44" r="4" fill="white" opacity="0.9"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sidebar -->
+
+    <!-- main code area -->
+    <div class="dc-main" id="dcMain">
+      <div class="code-header">
+        <span class="filepath" id="filepath">src/auth/middleware.js</span>
+        <span class="ctx-hash">commit <span id="ctxHash">—</span></span>
+      </div>
+
+      <!-- FIX-3: Neil view commit heading -->
+      <div class="neil-diff-heading" id="neilDiffHeading">—</div>
+
+      <!-- FIX-1: auto-split notification -->
+      <div class="auto-split-notice" id="autoSplitNotice">⊟ Split view opened — commit touches 2+ high-risk files</div>
+
+      <!-- James toast -->
+      <div class="dw-toast" id="dwToast">
+        <div class="dw-title" id="dwTitle">⚠ DANGEROUS WINDOW</div>
+        <div class="dw-body" id="dwBody">—</div>
+      </div>
+
+      <!-- Neil toast -->
+      <div class="neil-toast" id="neilToast">
+        <div class="nt-title" id="ntTitle">✓ COMMIT INTENT</div>
+        <div class="nt-body"  id="ntBody">—</div>
+      </div>
+
+      <div class="code-body" id="codeBody">
+        <!-- pane 1 -->
+        <div class="code-pane" id="pane1">
+          <div class="split-pane-header" id="pane1Hdr">auth/middleware.js</div>
+          <table class="diff-table" id="diffTable1"></table>
+        </div>
+        <!-- pane 2 (split view) -->
+        <div class="code-pane" id="pane2">
+          <div class="split-pane-header">utils/riskCalculator.js</div>
+          <table class="diff-table" id="diffTable2"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- timeline -->
+    <div class="dc-timeline">
+
+      <div class="tl-ctrl">
+        <button class="play-btn" id="playBtn" onclick="togglePlay()">
+          <div class="play-icon"></div>
+        </button>
+        <div class="tl-hint">SPC<br>play</div>
+      </div>
+
+      <div class="tl-tracks">
+
+        <!-- lanes -->
+        <div class="lanes" id="lanesEl">
+          <!-- built by JS -->
+        </div>
+
+        <!-- dangerous window stripe -->
+        <div class="dw-stripe" id="dwStripe">
+          <span class="dw-stripe-label">⚠ auth gap</span>
+        </div>
+
+        <!-- sparkline -->
+        <div class="spk-row">
+          <span class="spk-lbl">risk ↑</span>
+          <div class="spk-wrap">
+            <svg id="spkSvg" viewBox="0 0 100 22" preserveAspectRatio="none">
+              <defs>
+                <clipPath id="spkClip"><rect id="spkRect" x="0" y="0" width="0" height="22"/></clipPath>
+              </defs>
+              <g id="spkDim"></g>
+              <g id="spkFill" clip-path="url(#spkClip)"></g>
+              <line id="spkLine" x1="0" y1="0" x2="0" y2="22" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="slider-sec">
+          <div class="pip-row" id="pipRow">
+            <div class="dw-pip-zone" id="dwPipZone"></div>
+          </div>
+          <div class="slider-row">
+            <span class="sl-lbl" id="slLbl">← drag to replay</span>
+            <button class="step-btn" id="prevBtn" onclick="stepCommit(-1)" title="Previous commit (←)" disabled>◀</button>
+            <input type="range" id="slider" min="0" max="100" value="0" oninput="onSlide(+this.value)">
+            <button class="step-btn" id="nextBtn" onclick="stepCommit(1)" title="Next commit (→)" disabled>▶</button>
+          </div>
+        </div>
+
+      </div><!-- /tl-tracks -->
+
+      <div class="tl-info">
+        <div class="ci-card">
+          <span class="ci-hash" id="ciHash">——</span>
+          <span class="ci-msg"  id="ciMsg">Drag the slider or press Space to replay</span>
+          <span class="ci-meta"><span id="ciAuthor">——</span> · <span id="ciTime">——</span></span>
+        </div>
+        <div class="touch-list" id="touchList">
+          <div class="touch-lbl">Files in this commit</div>
+        </div>
+        <div class="tl-legend">
+          <div class="leg-row"><div class="leg-sw" style="background:var(--risk-hi)"></div>High risk</div>
+          <div class="leg-row"><div class="leg-sw" style="background:var(--risk-md)"></div>Medium risk</div>
+          <div class="leg-row"><div class="leg-sw" style="background:var(--risk-lo)"></div>Low risk</div>
+        </div>
+      </div>
+
+    </div><!-- /timeline -->
+
+  </div><!-- /dc-app -->
+</div><!-- /gh-content -->
+
+<!-- LIVE DATA LOAD PANEL -->
+<div class="load-panel-overlay" id="loadOverlay" onclick="closeLoadPanel(event)">
+  <div class="load-panel" id="loadPanel">
+    <div class="lp-header">
+      <span class="lp-title">Load real PR</span>
+      <button class="lp-close" onclick="closeLoadPanelDirect()">✕</button>
+    </div>
+    <div class="lp-body">
+      <label class="lp-label">GitHub token (PAT with <code>repo</code> scope)</label>
+      <input class="lp-input" id="lpToken" type="password" placeholder="ghp_…" autocomplete="off">
+      <label class="lp-label">Repository</label>
+      <input class="lp-input" id="lpRepo" type="text" placeholder="owner/repo">
+      <label class="lp-label">PR number</label>
+      <input class="lp-input" id="lpPr" type="number" placeholder="123" min="1">
+      <button class="lp-submit" id="lpSubmit" onclick="handleLoadPR()">Load PR</button>
+      <div class="lp-status" id="lpStatus"></div>
+    </div>
+    <div class="lp-footer">
+      <button class="lp-demo" onclick="loadDemoData()">← Back to demo</button>
+      <span class="lp-note">Token stays in memory only — never sent anywhere except api.github.com</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// DEMO DATA (restored by "back to demo" button)
+// ══════════════════════════════════════════════════════════════
+let COMMITS = [
+  { idx:0, hash:'a1b2c3d', msg:'chore: project scaffold + dependency setup',             author:'neil.runde', time:'09:14',
+    files:{ middleware:{adds:6,dels:0,risk:'lo'}, risk:{adds:9,dels:0,risk:'lo'}, config:{adds:2,dels:0,risk:'lo'} }, aggRisk:12 },
+  { idx:1, hash:'e4f5a6b', msg:'feat(auth): JWT token verification with error handling',  author:'neil.runde', time:'10:33',
+    files:{ middleware:{adds:12,dels:0,risk:'hi'}, risk:{adds:6,dels:0,risk:'md'}, config:{adds:3,dels:1,risk:'md'} }, aggRisk:76 },
+  { idx:2, hash:'c7d8e9f', msg:'feat(auth): role-based access control guard middleware',  author:'neil.runde', time:'11:57',
+    files:{ middleware:{adds:9,dels:2,risk:'hi'}, risk:{adds:5,dels:0,risk:'md'}, config:{adds:4,dels:0,risk:'md'} }, aggRisk:84 },
+  { idx:3, hash:'b0a1c2d', msg:'feat(auth): rate limiting (60 req/min) + audit log',     author:'neil.runde', time:'14:22',
+    files:{ middleware:{adds:11,dels:0,risk:'md'}, risk:{adds:3,dels:0,risk:'lo'}, config:{adds:3,dels:0,risk:'lo'} }, aggRisk:38 },
+]
+let CPCTS = [2, 33, 66, 97]  // commit x-positions as % of track
+
+const h = (t,c='') => `<span class="${t}">${c}</span>`
+const kw=s=>h('kw',s), st=s=>h('st',s), fn=s=>h('fn',s), nm=s=>h('nm',s), pr=s=>h('pr',s), cm=s=>h('cm',s), op=s=>h('op',s)
+
+let FILES = {
+  middleware: { path:'src/auth/middleware.js', lines:[
+    {n:1, t:'add',r:'lo',c:0,h:`${kw('const')} express    ${op('=')} ${fn('require')}(${st("'express'")})`},
+    {n:2, t:'add',r:'lo',c:0,h:`${kw('const')} jwt        ${op('=')} ${fn('require')}(${st("'jsonwebtoken'")})`},
+    {n:3, t:'add',r:'lo',c:0,h:`${kw('const')} { rateLimit } ${op('=')} ${fn('require')}(${st("'express-rate-limit'")})`},
+    {n:4, t:'add',r:'lo',c:0,h:``},
+    {n:5, t:'add',r:'lo',c:0,h:`${kw('const')} ${pr('ROLES')} ${op('=')} { ${pr('ADMIN')}: ${st("'admin'")}, ${pr('REVIEWER')}: ${st("'reviewer'")}, ${pr('VIEWER')}: ${st("'viewer'")} }`},
+    {n:6, t:'add',r:'lo',c:0,h:``},
+    {n:7, t:'add',r:'md',c:1,h:`${cm('// Verifies Bearer token; attaches decoded payload to req.user')}`},
+    {n:8, t:'add',r:'md',c:1,h:`${kw('const')} ${fn('verifyToken')} ${op('=')} (req, res, next) ${op('=>')} {`},
+    {n:9, t:'add',r:'md',c:1,h:`  ${kw('const')} header ${op('=')} req.headers[${st("'authorization'")}]`},
+    {n:10,t:'add',r:'hi',c:1,h:`  ${kw('if')} (${op('!')}header) ${kw('return')} res.${fn('status')}(${nm('401')}).${fn('json')}({ error: ${st("'No token'")} })`},
+    {n:11,t:'add',r:'md',c:1,h:`  ${kw('const')} token ${op('=')} header.${fn('split')}(${st("' '")})[${nm('1')}]`},
+    {n:12,t:'add',r:'hi',c:1,h:`  ${kw('try')} {`},
+    {n:13,t:'add',r:'hi',c:1,h:`    req.user ${op('=')} jwt.${fn('verify')}(token, process.env.${pr('JWT_SECRET')})`},
+    {n:14,t:'add',r:'hi',c:1,h:`    ${fn('next')}()`},
+    {n:15,t:'add',r:'hi',c:1,h:`  } ${kw('catch')} (err) {`},
+    {n:16,t:'add',r:'hi',c:1,h:`    res.${fn('status')}(${nm('403')}).${fn('json')}({ error: ${st("'Invalid or expired token'")} })`},
+    {n:17,t:'add',r:'hi',c:1,h:`  }`},
+    {n:18,t:'add',r:'md',c:1,h:`}`},
+    {n:19,t:'add',r:'lo',c:1,h:``},
+    {n:20,t:'add',r:'hi',c:2,h:`${cm('// Role guard — chain after verifyToken')}`},
+    {n:21,t:'add',r:'hi',c:2,h:`${kw('const')} ${fn('requireRole')} ${op('=')} (...allowed) ${op('=>')} (req, res, next) ${op('=>')} {`},
+    {n:22,t:'add',r:'hi',c:2,h:`  ${kw('if')} (${op('!')}req.user) ${kw('return')} res.${fn('status')}(${nm('401')}).${fn('json')}({ error: ${st("'Unauthenticated'")} })`},
+    {n:23,t:'add',r:'hi',c:2,h:`  ${kw('if')} (${op('!')}allowed.${fn('includes')}(req.user.role)) {`},
+    {n:24,t:'add',r:'hi',c:2,h:`    ${kw('return')} res.${fn('status')}(${nm('403')}).${fn('json')}({ error: ${st("'Insufficient role'")}, required: allowed })`},
+    {n:25,t:'add',r:'hi',c:2,h:`  }`},
+    {n:26,t:'add',r:'hi',c:2,h:`  ${fn('next')}()`},
+    {n:27,t:'add',r:'hi',c:2,h:`}`},
+    {n:28,t:'add',r:'lo',c:2,h:``},
+    {n:29,t:'del',r:'hi',c:2,h:`${cm('// TODO: placeholder — replace with real RBAC')}`},
+    {n:30,t:'del',r:'hi',c:2,h:`${kw('const')} ${fn('checkAuth')} ${op('=')} () ${op('=>')} ${kw('true')}`},
+    {n:31,t:'add',r:'md',c:3,h:`${cm('// 60 req/min per IP — applied at router level')}`},
+    {n:32,t:'add',r:'md',c:3,h:`${kw('const')} authLimiter ${op('=')} ${fn('rateLimit')}({`},
+    {n:33,t:'add',r:'md',c:3,h:`  windowMs: ${nm('60')} ${op('*')} ${nm('1000')}, max: ${nm('60')},`},
+    {n:34,t:'add',r:'md',c:3,h:`  standardHeaders: ${kw('true')}, legacyHeaders: ${kw('false')},`},
+    {n:35,t:'add',r:'md',c:3,h:`})`},
+    {n:36,t:'add',r:'lo',c:3,h:``},
+    {n:37,t:'add',r:'lo',c:3,h:`${cm('// Audit log — structured JSON to stdout')}`},
+    {n:38,t:'add',r:'lo',c:3,h:`${kw('const')} ${fn('auditLog')} ${op('=')} (action, req) ${op('=>')}`},
+    {n:39,t:'add',r:'lo',c:3,h:`  console.${fn('warn')}(JSON.${fn('stringify')}({ action, user: req.user?.id, ts: Date.${fn('now')}() }))`},
+    {n:40,t:'add',r:'lo',c:3,h:``},
+    {n:41,t:'add',r:'lo',c:3,h:`module.exports ${op('=')} { verifyToken, requireRole, authLimiter, auditLog, ${pr('ROLES')} }`},
+  ]},
+  risk: { path:'src/utils/riskCalculator.js', lines:[
+    {n:1, t:'add',r:'lo',c:0,h:`${cm('// Pure function — metrics → risk score 0–100')}`},
+    {n:2, t:'add',r:'lo',c:0,h:``},
+    {n:3, t:'add',r:'lo',c:0,h:`${kw('const')} ${pr('WEIGHTS')} ${op('=')} {`},
+    {n:4, t:'add',r:'lo',c:0,h:`  auth: ${nm('2.0')}, config: ${nm('1.6')}, test: ${nm('0.4')}, default: ${nm('1.0')},`},
+    {n:5, t:'add',r:'lo',c:0,h:`}`},
+    {n:6, t:'add',r:'lo',c:0,h:``},
+    {n:7, t:'add',r:'md',c:1,h:`${kw('const')} ${fn('calcRisk')} ${op('=')} ({ linesChanged, complexityDelta, fileType, authorChurn }) ${op('=>')} {`},
+    {n:8, t:'add',r:'md',c:1,h:`  ${kw('const')} weight ${op('=')} ${pr('WEIGHTS')}[fileType] ${op('??')} ${pr('WEIGHTS')}.default`},
+    {n:9, t:'add',r:'md',c:1,h:`  ${kw('const')} size   ${op('=')} Math.${fn('min')}(linesChanged ${op('/')} ${nm('50')}, ${nm('1')}) ${op('*')} ${nm('40')}`},
+    {n:10,t:'add',r:'md',c:1,h:`  ${kw('const')} cx     ${op('=')} Math.${fn('min')}(complexityDelta ${op('/')} ${nm('10')}, ${nm('1')}) ${op('*')} ${nm('35')}`},
+    {n:11,t:'add',r:'md',c:1,h:`  ${kw('const')} churn  ${op('=')} Math.${fn('min')}(authorChurn ${op('/')} ${nm('20')}, ${nm('1')}) ${op('*')} ${nm('25')}`},
+    {n:12,t:'add',r:'md',c:1,h:`  ${kw('return')} Math.${fn('round')}((size ${op('+')} cx ${op('+')} churn) ${op('*')} weight)`},
+    {n:13,t:'add',r:'md',c:1,h:`}`},
+    {n:14,t:'add',r:'lo',c:1,h:``},
+    {n:15,t:'add',r:'lo',c:2,h:`${kw('const')} ${fn('riskLevel')} ${op('=')} s ${op('=>')} s ${op('<=')} ${nm('33')} ${op('?')} ${st("'low'")} ${op(':')} s ${op('<=')} ${nm('66')} ${op('?')} ${st("'medium'")} ${op(':')} ${st("'high'")}`},
+    {n:16,t:'add',r:'lo',c:2,h:``},
+    {n:17,t:'add',r:'lo',c:3,h:`module.exports ${op('=')} { calcRisk, riskLevel, ${pr('WEIGHTS')} }`},
+  ]},
+  config: { path:'src/config/api.js', lines:[
+    {n:1, t:'add',r:'lo',c:0,h:`${cm('// Central config — import from here, never hardcode')}`},
+    {n:2, t:'add',r:'lo',c:0,h:``},
+    {n:3, t:'del',r:'md',c:1,h:`${kw('const')} ${pr('GITHUB_API_VERSION')} ${op('=')} ${st("'2022-11-28'")} ${cm('// hardcoded — bad')}`},
+    {n:4, t:'add',r:'lo',c:1,h:`${kw('const')} ${pr('GITHUB_API_VERSION')} ${op('=')} process.env.${pr('GITHUB_API_VERSION')} ${op('??')} ${st("'2022-11-28'")}`},
+    {n:5, t:'add',r:'lo',c:1,h:`${kw('const')} ${pr('GITHUB_API_BASE')}    ${op('=')} ${st("'https://api.github.com'")}`},
+    {n:6, t:'add',r:'lo',c:1,h:``},
+    {n:7, t:'add',r:'md',c:2,h:`${kw('const')} ${pr('RISK_THRESHOLDS')} ${op('=')} {`},
+    {n:8, t:'add',r:'md',c:2,h:`  LOW:  parseInt(process.env.${pr('RISK_LOW')}  ${op('??')} ${nm('33')}),`},
+    {n:9, t:'add',r:'md',c:2,h:`  HIGH: parseInt(process.env.${pr('RISK_HIGH')} ${op('??')} ${nm('66')}),`},
+    {n:10,t:'add',r:'md',c:2,h:`}`},
+    {n:11,t:'add',r:'lo',c:2,h:``},
+    {n:12,t:'add',r:'lo',c:3,h:`module.exports ${op('=')} { ${pr('GITHUB_API_VERSION')}, ${pr('GITHUB_API_BASE')}, ${pr('RISK_THRESHOLDS')} }`},
+  ]},
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let curFile      = 'middleware'
+let curCommit    = -1
+let prevCommit   = -1
+let sliderVal    = 0
+let playing      = false
+let playTimer    = null
+let splitOn      = false
+let curView      = 'james'
+let autoSplit    = new Set()  // commits where split was auto-triggered
+let autoSplitTimer = null
+let LIVE_MODE    = false
+
+// ══════════════════════════════════════════════════════════════
+// LIVE DATA LOADER
+// ══════════════════════════════════════════════════════════════
+function toggleLoadPanel() {
+  document.getElementById('loadOverlay').classList.toggle('open')
+}
+function closeLoadPanel(e) {
+  if (e.target === document.getElementById('loadOverlay')) closeLoadPanelDirect()
+}
+function closeLoadPanelDirect() {
+  document.getElementById('loadOverlay').classList.remove('open')
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('lpStatus')
+  el.textContent = msg
+  el.className = 'lp-status' + (cls ? ' ' + cls : '')
+}
+
+function fileRiskHeuristic(path) {
+  const p = path.toLowerCase()
+  if (/auth|security|middleware|permission|role|token|jwt|password|secret|credential|login|oauth|session/.test(p)) return 'hi'
+  if (/config|\.env|setting|constant|\.json|env\./.test(p)) return 'md'
+  if (/test|spec|__test|\.test\.|\.spec\./.test(p)) return 'lo'
+  return null
+}
+
+function lineRisk(filePath, content) {
+  const base = fileRiskHeuristic(filePath)
+  if (base === 'hi') {
+    const l = content.toLowerCase()
+    if (/verify|authenticate|authorize|password|secret|token|key|sign\(|encrypt/.test(l)) return 'hi'
+    if (/if|guard|require|check|role/.test(l)) return 'md'
+    return 'lo'
+  }
+  if (base === 'md') return 'md'
+  if (base === 'lo') return 'lo'
+  const l = content.toLowerCase()
+  if (/eval\(|exec\(|spawn\(|sql|query|delete from|drop table|rm -rf/.test(l)) return 'hi'
+  return 'lo'
+}
+
+function parsePatch(patch, filePath, commitIdx) {
+  if (!patch) return []
+  const lines = []
+  let lineNum = 1
+  const rawLines = patch.split('\n')
+  for (const raw of rawLines) {
+    if (raw.startsWith('@@')) {
+      const m = raw.match(/\+(\d+)/)
+      if (m) lineNum = parseInt(m[1])
+      continue
+    }
+    if (raw.startsWith('\\')) continue
+    const ch = raw[0]
+    if (ch === '+') {
+      const content = raw.slice(1)
+      lines.push({ n: lineNum, t: 'add', r: lineRisk(filePath, content), c: commitIdx, h: escHtml(content) })
+      lineNum++
+    } else if (ch === '-') {
+      const content = raw.slice(1)
+      lines.push({ n: lineNum, t: 'del', r: lineRisk(filePath, content), c: commitIdx, h: escHtml(content) })
+    } else {
+      const content = raw.slice(1)
+      lines.push({ n: lineNum, t: 'ctx', r: 'lo', c: commitIdx, h: escHtml(content) })
+      lineNum++
+    }
+  }
+  return lines
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+
+async function ghFetch(url, token) {
+  const r = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  })
+  if (!r.ok) throw new Error(`GitHub API ${r.status}: ${r.statusText}`)
+  return r.json()
+}
+
+async function handleLoadPR() {
+  const token  = document.getElementById('lpToken').value.trim()
+  const repo   = document.getElementById('lpRepo').value.trim()
+  const prNum  = document.getElementById('lpPr').value.trim()
+  if (!token || !repo || !prNum) { setStatus('All three fields required.', 'err'); return }
+  if (!repo.includes('/')) { setStatus('Repo must be "owner/repo".', 'err'); return }
+
+  const btn = document.getElementById('lpSubmit')
+  btn.disabled = true
+  setStatus('Fetching commits…')
+
+  try {
+    const base = 'https://api.github.com'
+    const commitList = await ghFetch(`${base}/repos/${repo}/pulls/${prNum}/commits?per_page=100`, token)
+    if (!commitList.length) { setStatus('PR has no commits.', 'err'); btn.disabled = false; return }
+
+    setStatus(`Found ${commitList.length} commits — loading file patches…`)
+
+    const capped = commitList.slice(0, 20)
+    const commitDetails = await Promise.all(
+      capped.map(c => ghFetch(`${base}/repos/${repo}/commits/${c.sha}`, token))
+    )
+
+    const fileMap = {}
+    commitDetails.forEach((detail, ci) => {
+      (detail.files || []).forEach(f => {
+        if (!fileMap[f.filename]) fileMap[f.filename] = { totalLines: 0, patches: [] }
+        const adds = f.additions ?? 0
+        const dels = f.deletions ?? 0
+        fileMap[f.filename].totalLines += adds + dels
+        fileMap[f.filename].patches.push({ ci, patch: f.patch, adds, dels, filename: f.filename })
+      })
+    })
+
+    const sortedPaths = Object.keys(fileMap)
+      .sort((a, b) => fileMap[b].totalLines - fileMap[a].totalLines)
+      .slice(0, 15)
+
+    const newFileNames = {}
+    sortedPaths.forEach((fp, i) => { newFileNames[`f${i}`] = fp })
+
+    const newFiles = {}
+    sortedPaths.forEach((fp, fileIdx) => {
+      const key = `f${fileIdx}`
+      const allLines = []
+      fileMap[fp].patches.forEach(({ ci, patch }) => {
+        const parsed = parsePatch(patch, fp, ci)
+        allLines.push(...parsed)
+      })
+      newFiles[key] = { path: fp, lines: allLines }
+    })
+
+    const newCommits = capped.map((c, ci) => {
+      const detail = commitDetails[ci]
+      const files = {}
+      sortedPaths.forEach((fp, fi) => {
+        const key = `f${fi}`
+        const patch = fileMap[fp].patches.find(p => p.ci === ci)
+        if (patch) {
+          const fileRisk = fileRiskHeuristic(fp) ?? (patch.adds + patch.dels > 30 ? 'md' : 'lo')
+          files[key] = { adds: patch.adds, dels: patch.dels, risk: fileRisk }
+        } else {
+          files[key] = { adds: 0, dels: 0, risk: 'lo' }
+        }
+      })
+      const riskVals = Object.values(files).map(f => f.risk === 'hi' ? 80 : f.risk === 'md' ? 50 : 15)
+      const aggRisk = Math.round(riskVals.reduce((a, b) => Math.max(a, b), 0))
+      const date = new Date(c.commit.author.date)
+      const time = date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })
+      return {
+        idx: ci,
+        hash: c.sha.slice(0, 7),
+        msg: c.commit.message.split('\n')[0].slice(0, 72),
+        author: (c.commit.author.name || c.author?.login || '').slice(0, 20),
+        time,
+        files,
+        aggRisk,
+      }
+    })
+
+    const n = newCommits.length
+    const newCpcts = newCommits.map((_, i) =>
+      n === 1 ? 50 : Math.round(2 + (i / (n - 1)) * 95)
+    )
+
+    LIVE_MODE  = true
+    COMMITS    = newCommits
+    FILES      = newFiles
+    FILE_NAMES = newFileNames
+    CPCTS      = newCpcts
+
+    closeLoadPanelDirect()
+    reinit()
+    setStatus(`Loaded ${n} commits · ${sortedPaths.length} files`, 'ok')
+
+  } catch (e) {
+    console.error('[DiffCast] loadLivePR error:', e)
+    setStatus(`Error: ${e.message}`, 'err')
+  } finally {
+    btn.disabled = false
+  }
+}
+
+function loadDemoData() {
+  LIVE_MODE  = false
+  COMMITS    = DEMO_COMMITS
+  FILES      = DEMO_FILES
+  FILE_NAMES = DEMO_FILE_NAMES
+  CPCTS      = DEMO_CPCTS
+  closeLoadPanelDirect()
+  reinit()
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+function init() {
+  const fileKeys = Object.keys(FILE_NAMES)
+  curFile = fileKeys[0] ?? 'middleware'
+  buildLanes()
+  buildPips()
+  buildSparkline()
+  setDWStripe()
+  renderDiff(curFile, document.getElementById('diffTable1'))
+  const secondKey = fileKeys[1]
+  if (secondKey) renderDiff(secondKey, document.getElementById('diffTable2'))
+  applyState(-1, false)
+}
+
+function reinit() {
+  curCommit = -1; prevCommit = -1; sliderVal = 0
+  playing = false; splitOn = false
+  autoSplit = new Set()
+  clearTimeout(playTimer); clearTimeout(autoSplitTimer); clearTimeout(toastTimer)
+  document.getElementById('codeBody').classList.remove('split-active')
+  document.getElementById('splitBtn').classList.remove('active')
+  document.getElementById('splitBtnLabel').textContent = 'Split view'
+  const sl = document.getElementById('slider')
+  sl.value = 0
+  updateSliderTrack(0)
+  const fileKeys = Object.keys(FILE_NAMES)
+  curFile = fileKeys[0]
+  document.getElementById('filepath').textContent = FILES[curFile]?.path ?? ''
+  document.getElementById('pane1Hdr').textContent = FILE_NAMES[curFile] ?? ''
+  buildFileList()
+  buildNeilSidebar()
+  buildLanes()
+  buildPips()
+  buildSparkline()
+  renderDiff(curFile, document.getElementById('diffTable1'))
+  const secondKey = fileKeys[1]
+  if (secondKey) renderDiff(secondKey, document.getElementById('diffTable2'))
+  // Update Start Here badge for live data
+  if (LIVE_MODE) {
+    const shBody = document.querySelector('#startHere .sh-body')
+    if (shBody) {
+      const maxCommit = COMMITS.reduce((best, c, i) => c.aggRisk > (COMMITS[best]?.aggRisk ?? 0) ? i : best, 0)
+      const mc = COMMITS[maxCommit]
+      shBody.textContent = `Commit ${mc.hash} — ${mc.msg.slice(0, 50)} (risk: ${mc.aggRisk})`
+    }
+    // Update Commits tab count
+    const tabCount = document.querySelector('.gh-tab.injected .tab-count')
+    if (tabCount) tabCount.textContent = `${COMMITS.length}c`
+  }
+  applyState(-1, false)
+}
+
+// ══════════════════════════════════════════════════════════════
+// LANES
+// ══════════════════════════════════════════════════════════════
+let FILE_NAMES = { middleware:'auth/middleware.js', risk:'utils/riskCalculator.js', config:'config/api.js' }
+const MAX_LINES = 12
+
+// Snapshot demo data for restore
+const DEMO_COMMITS    = COMMITS.slice()
+const DEMO_FILES      = FILES
+const DEMO_FILE_NAMES = Object.assign({}, FILE_NAMES)
+const DEMO_CPCTS      = CPCTS.slice()
+
+function buildLanes() {
+  const el = document.getElementById('lanesEl')
+  el.innerHTML = ''
+  Object.keys(FILE_NAMES).forEach(key => {
+    const lane = document.createElement('div')
+    lane.className = 'lane' + (key === curFile ? ' active' : '')
+    lane.id = `lane-${key}`
+    lane.onclick = () => selectFile(key, document.querySelector(`[onclick*="'${key}'"]`))
+    const nm2 = document.createElement('div')
+    nm2.className = 'lane-name'
+    nm2.textContent = FILE_NAMES[key]
+    const track = document.createElement('div')
+    track.className = 'lane-track'
+    COMMITS.forEach((c, ci) => {
+      const fd = c.files[key]
+      const lines = fd.adds + fd.dels
+      const w = Math.max(8, Math.round(lines / MAX_LINES * 42))
+      const b = document.createElement('div')
+      b.className = `act-block ab-${fd.risk}`
+      b.dataset.commit = ci; b.dataset.file = key
+      b.style.width = w + 'px'
+      b.style.left  = CPCTS[ci] + '%'
+      track.appendChild(b)
+    })
+    lane.appendChild(nm2); lane.appendChild(track)
+    el.appendChild(lane)
+  })
+}
+
+function buildFileList() {
+  const el = document.getElementById('fileList')
+  if (!el) return
+  el.innerHTML = ''
+  const fileKeys = Object.keys(FILE_NAMES)
+  fileKeys.forEach((key, idx) => {
+    const totAdds = COMMITS.reduce((s, c) => s + (c.files[key]?.adds ?? 0), 0)
+    const totDels = COMMITS.reduce((s, c) => s + (c.files[key]?.dels ?? 0), 0)
+    const risks = COMMITS.map(c => c.files[key]?.risk ?? 'lo')
+    const maxRisk = risks.includes('hi') ? 'hi' : risks.includes('md') ? 'md' : 'lo'
+    const div = document.createElement('div')
+    div.className = `file-entry${idx === 0 ? ' active' : ''}`
+    div.dataset.key = key
+    div.onclick = () => selectFile(key, div)
+    div.innerHTML = `
+      <div class="fe-row">
+        <div class="fe-dot fe-${maxRisk}"></div>
+        <span class="fe-name">${FILE_NAMES[key]}</span>
+        <span class="fe-stat">+${totAdds} −${totDels}</span>
+      </div>
+      <div class="fe-spark"><div class="fe-spark-fill" id="sk-${key}" style="width:0%;background:var(--risk-${maxRisk})"></div></div>
+      <div class="fe-cochange" id="cc-${key}"></div>`
+    el.appendChild(div)
+  })
+}
+
+function buildNeilSidebar() {
+  const el = document.getElementById('neilCommitList')
+  if (!el) return
+  if (!LIVE_MODE) return  // demo: keep static HTML
+  el.innerHTML = ''
+  COMMITS.forEach((c, i) => {
+    const div = document.createElement('div')
+    div.className = 'commit-card-nav'
+    div.dataset.cidx = i
+    div.onclick = () => jumpTo(i)
+    const fileDots = Object.entries(c.files)
+      .filter(([, f]) => f.adds + f.dels > 0)
+      .slice(0, 6)
+      .map(([k, f]) => {
+        const name = (FILE_NAMES[k] ?? k).split('/').pop()
+        return `<div class="ccn-file-dot" style="background:var(--risk-${f.risk})" title="${name}"></div>`
+      }).join('')
+    div.innerHTML = `
+      <div class="ccn-hash">${c.hash}</div>
+      <div class="ccn-msg">${c.msg}</div>
+      <div class="ccn-meta"><span>${c.author}</span><span>${c.time}</span></div>
+      <div class="ccn-files">${fileDots}</div>`
+    el.appendChild(div)
+  })
+}
+
+// ══════════════════════════════════════════════════════════════
+// PIPS
+// ══════════════════════════════════════════════════════════════
+function buildPips() {
+  const row = document.getElementById('pipRow')
+  // remove old pips but keep dw-pip-zone
+  Array.from(row.querySelectorAll('.pip')).forEach(p => p.remove())
+  COMMITS.forEach((c, i) => {
+    const pip = document.createElement('div')
+    pip.className = 'pip'
+    pip.style.left = CPCTS[i] + '%'
+    pip.dataset.idx = i
+    pip.innerHTML = `<div class="pip-dot"></div><div class="pip-lbl">${c.hash}</div>`
+    pip.onclick = () => jumpTo(i)
+    row.appendChild(pip)
+  })
+  // position dw zone between commit 1 and 2 (33%→66%)
+  const dz = document.getElementById('dwPipZone')
+  dz.style.left  = '33%'
+  dz.style.width = '33%'
+}
+
+// ══════════════════════════════════════════════════════════════
+// SPARKLINE
+// ══════════════════════════════════════════════════════════════
+const SPK_H = 22
+function buildSparkline() {
+  const dim = document.getElementById('spkDim')
+  const fill= document.getElementById('spkFill')
+  dim.innerHTML = fill.innerHTML = ''
+  const bw = 5
+  COMMITS.forEach((c, i) => {
+    const x = CPCTS[i]
+    const h = (c.aggRisk / 100) * SPK_H
+    const y = SPK_H - h
+    const col = c.aggRisk >= 67 ? '#cf222e' : c.aggRisk >= 34 ? '#9a6700' : '#1a7f37'
+    ;[dim, fill].forEach((g, gi) => {
+      const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+      r.setAttribute('x', `calc(${x}% - ${bw/2}px)`)
+      r.setAttribute('y', y); r.setAttribute('height', h)
+      r.setAttribute('width', bw + '%')
+      r.setAttribute('fill', col)
+      r.setAttribute('opacity', gi === 0 ? '0.14' : '0.85')
+      r.setAttribute('rx', '1')
+      g.appendChild(r)
+    })
+  })
+}
+
+function updateSparkline(pct) {
+  document.getElementById('spkRect').setAttribute('width', pct)
+  const l = document.getElementById('spkLine')
+  l.setAttribute('x1', pct + '%'); l.setAttribute('x2', pct + '%')
+}
+
+// ══════════════════════════════════════════════════════════════
+// DANGEROUS WINDOW STRIPE
+// ══════════════════════════════════════════════════════════════
+function setDWStripe() {
+  const stripe = document.getElementById('dwStripe')
+  // position between commit 1 (33%) and commit 2 (66%) — same as pip row
+  const lanesEl = document.getElementById('lanesEl')
+  // We'll position it over the lanes area
+  // Since it's absolutely positioned inside tl-tracks, set left/width
+  stripe.style.left  = '33%'
+  stripe.style.width = '33%'
+  stripe.style.top   = '0'
+  stripe.style.height= '58px' // covers lanes + spk area
+}
+
+// ══════════════════════════════════════════════════════════════
+// SLIDER
+// ══════════════════════════════════════════════════════════════
+function onSlide(v) {
+  sliderVal = v
+  const nc = sliderToCommit(v)
+  const fwd = nc > curCommit
+  if (nc !== curCommit) { prevCommit = curCommit; curCommit = nc; applyState(nc, fwd) }
+  updateSliderTrack(v)
+  updateSparkline(v)
+  updatePips(nc)
+}
+
+function sliderToCommit(v) {
+  if (v < 1) return -1
+  const n = COMMITS.length
+  if (n === 0) return -1
+  if (n === 1) return v >= 50 ? 0 : -1
+  for (let i = 0; i < n - 1; i++) {
+    if (v <= (CPCTS[i] + CPCTS[i + 1]) / 2) return i
+  }
+  return n - 1
+}
+
+function jumpTo(i) {
+  const sv = CPCTS[i] ?? 0
+  document.getElementById('slider').value = sv
+  onSlide(sv)
+}
+
+function updateSliderTrack(v) {
+  const sl = document.getElementById('slider')
+  let bg
+  if (LIVE_MODE && COMMITS.length > 0) {
+    // Build gradient from real commit risk scores
+    const riskColor = r => r >= 67 ? 'var(--risk-hi)' : r >= 34 ? 'var(--risk-md)' : 'var(--risk-lo)'
+    const n = COMMITS.length
+    if (n === 1) {
+      const col = riskColor(COMMITS[0].aggRisk)
+      bg = `linear-gradient(to right, ${col} 0%, ${col} 100%)`
+    } else {
+      const stops = []
+      COMMITS.forEach((c, i) => {
+        const x    = CPCTS[i]
+        const col  = riskColor(c.aggRisk)
+        const xPrev = i > 0 ? CPCTS[i - 1] : 0
+        const mid  = i > 0 ? (xPrev + x) / 2 : 0
+        if (i > 0) stops.push(`${col} ${mid}%`)
+        stops.push(`${col} ${x}%`)
+      })
+      const lastCol = riskColor(COMMITS[n - 1].aggRisk)
+      stops.push(`${lastCol} 100%`)
+      bg = `linear-gradient(to right, ${stops.join(', ')})`
+    }
+  } else {
+    bg = `linear-gradient(to right,
+      var(--risk-lo) 0%, var(--risk-lo) 24%,
+      var(--risk-hi) 34%, var(--risk-hi) 65%,
+      var(--risk-md) 75%, var(--risk-md) 100%)`
+  }
+  sl.style.background = bg
+  sl.style.webkitMaskImage = `linear-gradient(to right, black ${v}%, rgba(0,0,0,0.15) ${v}%)`
+  sl.style.maskImage        = sl.style.webkitMaskImage
+}
+
+function updatePips(ci) {
+  document.querySelectorAll('.pip').forEach(p => {
+    const i = +p.dataset.idx
+    p.classList.toggle('reached', i <= ci)
+    p.classList.toggle('current', i === ci)
+  })
+}
+
+// ══════════════════════════════════════════════════════════════
+// APPLY STATE
+// ══════════════════════════════════════════════════════════════
+function applyState(ci, animate) {
+  applyDiffVisibility(ci, animate, 'diffTable1', curFile)
+  const secondKey = Object.keys(FILE_NAMES)[1] ?? curFile
+  applyDiffVisibility(ci, animate, 'diffTable2', secondKey)
+  applyLanes(ci)
+  updateCard(ci)
+  updateRisk(ci)
+  updateCoChange(ci)
+  updateSparks(ci)
+  updateToasts(ci, animate)
+  updateSplitBtn(ci)
+  updateNeilSidebar(ci)
+  updateDWZone(ci)
+  document.getElementById('slLbl').textContent =
+    ci >= 0 ? `commit ${ci+1} of ${COMMITS.length}` : '← drag to replay'
+  document.getElementById('prevBtn').disabled = ci <= 0
+  document.getElementById('nextBtn').disabled = ci >= COMMITS.length - 1
+}
+
+function applyDiffVisibility(ci, animate, tableId, fileKey) {
+  const table = document.getElementById(tableId)
+  if (!table) return
+  table.querySelectorAll('.diff-line').forEach(tr => {
+    const lc = +tr.dataset.commit
+    const type = tr.dataset.type
+    if (type === 'ctx') { tr.classList.add('visible'); return }
+    const show = ci >= lc
+    if (show && !tr.classList.contains('visible')) {
+      tr.classList.add('visible')
+      if (animate) {
+        const r = tr.dataset.risk
+        tr.classList.remove('fl-lo','fl-md','fl-hi')
+        void tr.offsetWidth
+        tr.classList.add(`fl-${r}`)
+        setTimeout(() => tr.classList.remove('fl-lo','fl-md','fl-hi'), 750)
+      }
+    } else if (!show) {
+      tr.classList.remove('visible','fl-lo','fl-md','fl-hi')
+    }
+  })
+}
+
+function applyLanes(ci) {
+  document.querySelectorAll('.act-block').forEach(b => {
+    const bc = +b.dataset.commit
+    b.classList.toggle('reached', bc <= ci)
+    b.classList.toggle('is-current', bc === ci)
+  })
+  document.querySelectorAll('.lane').forEach(l =>
+    l.classList.toggle('active', l.id === `lane-${curFile}`))
+}
+
+function updateCard(ci) {
+  const c = COMMITS[ci]
+  const riskCol = { lo:'var(--risk-lo)', md:'var(--risk-md)', hi:'var(--risk-hi)' }
+  document.getElementById('ciHash').textContent   = c?.hash   ?? '——'
+  document.getElementById('ciMsg').textContent    = c?.msg    ?? 'Drag the slider to replay'
+  document.getElementById('ciAuthor').textContent = c?.author ?? '——'
+  document.getElementById('ciTime').textContent   = c?.time   ?? '——'
+  document.getElementById('ctxHash').textContent  = c?.hash   ?? '—'
+  // FIX-3: update Neil diff heading with current commit message
+  const ndh = document.getElementById('neilDiffHeading')
+  if (ndh) ndh.textContent = c ? `"${c.msg}"` : '—'
+  const tl = document.getElementById('touchList')
+  tl.innerHTML = '<div class="touch-lbl">Files in this commit</div>'
+  if (!c) return
+  Object.entries(c.files).forEach(([key, fd]) => {
+    const d = document.createElement('div'); d.className = 'touch-item'
+    d.innerHTML = `<div class="touch-dot" style="background:${riskCol[fd.risk]}"></div>
+      <span>${FILE_NAMES[key]}</span><span class="touch-stat">+${fd.adds} −${fd.dels}</span>`
+    tl.appendChild(d)
+  })
+}
+
+function updateRisk(ci) {
+  const file = FILES[curFile]
+  let hi=0, md=0, lo=0, tot=0
+  file.lines.forEach(l => {
+    if (l.t !== 'add' || l.c > ci) return
+    tot++
+    if (l.r==='hi') hi++; else if (l.r==='md') md++; else lo++
+  })
+  const p = v => tot ? Math.round(v/tot*100) : 0
+  const hp=p(hi), mp=p(md), lp=p(lo)
+  document.getElementById('rb-hi').style.width=hp+'%'
+  document.getElementById('rb-md').style.width=mp+'%'
+  document.getElementById('rb-lo').style.width=lp+'%'
+  document.getElementById('rp-hi').textContent=hp+'%'
+  document.getElementById('rp-md').textContent=mp+'%'
+  document.getElementById('rp-lo').textContent=lp+'%'
+}
+
+function updateCoChange(ci) {
+  const c = COMMITS[ci]
+  const cls = { lo:'cp-lo', md:'cp-md', hi:'cp-hi' }
+  const fileKeys = Object.keys(FILE_NAMES)
+  fileKeys.forEach(key => {
+    const el = document.getElementById(`cc-${key}`)
+    if (!el) return
+    el.innerHTML = ''
+    if (!c) return
+    const changed = fileKeys.filter(k => k !== key && (c.files[k]?.adds ?? 0) + (c.files[k]?.dels ?? 0) > 0)
+    changed.slice(0, 3).forEach(other => {
+      const fd = c.files[other]
+      if (!fd) return
+      const pill = document.createElement('span')
+      pill.className = `cochange-pill show ${cls[fd.risk] ?? 'cp-lo'}`
+      const label = FILE_NAMES[other]?.split('/').pop() ?? other
+      pill.textContent = `+ ${label.slice(0, 12)}`
+      el.appendChild(pill)
+    })
+  })
+}
+
+function updateSparks(ci) {
+  const fileKeys = Object.keys(FILE_NAMES)
+  fileKeys.forEach(key => {
+    const el = document.getElementById(`sk-${key}`)
+    if (!el) return
+    // Compute cumulative adds up to ci+1 for this file
+    const cumAdds = COMMITS.slice(0, ci + 1).reduce((s, c) => s + (c.files[key]?.adds ?? 0), 0)
+    const totalAdds = COMMITS.reduce((s, c) => s + (c.files[key]?.adds ?? 0), 0)
+    const w = totalAdds > 0 && ci >= 0 ? Math.round(cumAdds / totalAdds * 100) : 0
+    el.style.width = w + '%'
+  })
+}
+
+// ── Toasts ──────────────────────────────────────────────────
+const JAMES_TOASTS = {
+  1: { title:'⚠ DANGEROUS WINDOW OPENS', body:'JWT verification exists — but no role guard yet. All authenticated users have full access until commit 3.' },
+  2: { title:'⚠ HIGH RISK — ACCESS CONTROL', body:'requireRole() added. Test all role paths: ADMIN, REVIEWER, VIEWER + unauthenticated.' },
+  3: { title:'MEDIUM RISK', body:'Rate limit set to 60 req/min. Verify this threshold matches infra SLA before merging.' },
+}
+const NEIL_TOASTS = {
+  0: { title:'✓ SCAFFOLD', body:'Clean setup. Dependencies pinned. Good starting point.' },
+  1: { title:'✓ AUTH FOUNDATION', body:'JWT verification complete. Note: role checking comes next commit — intentional sequencing.' },
+  2: { title:'✓ RBAC COMPLETE', body:'Authorization layer closed. JWT + roles now atomic from this commit forward.' },
+  3: { title:'✓ HARDENING', body:'Rate limiting + structured audit log. PR is now review-ready.' },
+}
+let toastTimer = null
+function updateToasts(ci, animate) {
+  const dw = document.getElementById('dwToast')
+  const nt = document.getElementById('neilToast')
+  if (!animate || ci < 0) { dw.classList.remove('show'); nt.classList.remove('show'); return }
+  clearTimeout(toastTimer)
+
+  if (LIVE_MODE) {
+    const c = COMMITS[ci]
+    if (!c) return
+    if (curView === 'james') {
+      nt.classList.remove('show')
+      if (c.aggRisk >= 34) {
+        const riskLabel = c.aggRisk >= 67 ? 'HIGH RISK' : 'MEDIUM RISK'
+        const hiFiles = Object.entries(c.files)
+          .filter(([, f]) => f.risk === 'hi' && (f.adds + f.dels) > 0)
+          .map(([k]) => (FILE_NAMES[k] ?? k).split('/').pop())
+        const body = hiFiles.length
+          ? `${hiFiles.slice(0, 2).join(', ')}${hiFiles.length > 2 ? ` +${hiFiles.length - 2} more` : ''} — review carefully`
+          : `${Object.values(c.files).filter(f => f.adds + f.dels > 0).length} files changed in this commit`
+        document.getElementById('dwTitle').textContent = `⚠ ${riskLabel} — commit ${ci + 1}`
+        document.getElementById('dwBody').textContent  = body
+        dw.classList.add('show')
+        toastTimer = setTimeout(() => dw.classList.remove('show'), 3500)
+      } else {
+        dw.classList.remove('show')
+      }
+    } else {
+      dw.classList.remove('show')
+      const fileCount = Object.values(c.files).filter(f => f.adds + f.dels > 0).length
+      const totalAdds = Object.values(c.files).reduce((s, f) => s + f.adds, 0)
+      document.getElementById('ntTitle').textContent = `✓ ${c.msg.slice(0, 48)}`
+      document.getElementById('ntBody').textContent  = `+${totalAdds} lines across ${fileCount} file${fileCount !== 1 ? 's' : ''}`
+      nt.classList.add('show')
+      toastTimer = setTimeout(() => nt.classList.remove('show'), 3000)
+    }
+    return
+  }
+
+  // Demo mode (original hardcoded logic)
+  if (curView === 'james') {
+    nt.classList.remove('show')
+    const t = JAMES_TOASTS[ci]
+    if (t) {
+      document.getElementById('dwTitle').textContent = t.title
+      document.getElementById('dwBody').textContent  = t.body
+      dw.classList.add('show')
+      toastTimer = setTimeout(() => dw.classList.remove('show'), 3500)
+    } else { dw.classList.remove('show') }
+  } else {
+    dw.classList.remove('show')
+    const t = NEIL_TOASTS[ci]
+    if (t) {
+      document.getElementById('ntTitle').textContent = t.title
+      document.getElementById('ntBody').textContent  = t.body
+      nt.classList.add('show')
+      toastTimer = setTimeout(() => nt.classList.remove('show'), 3000)
+    } else { nt.classList.remove('show') }
+  }
+}
+
+// FIX-1: auto-trigger split on high-risk multi-file commits
+const AUTO_SPLIT_COMMITS = new Set([1, 2])  // commits 1+2 have hi-risk across 2+ files
+
+function updateSplitBtn(ci) {
+  const wrap = document.getElementById('splitBtnWrap')
+  const c = COMMITS[ci]
+  if (!c) { wrap.classList.remove('visible'); return }
+  const numFiles = Object.keys(c.files).length
+  const notice = document.getElementById('splitNotice')
+  notice.textContent = `${numFiles} files this commit`
+  wrap.classList.add('visible')
+
+  // Auto-open split when entering a high-risk multi-file commit (once per commit)
+  const isAutoSplitCommit = LIVE_MODE
+    ? (Object.values(COMMITS[ci]?.files ?? {}).filter(f => f.risk === 'hi' && f.adds + f.dels > 0).length >= 2)
+    : AUTO_SPLIT_COMMITS.has(ci)
+  if (isAutoSplitCommit && !autoSplit.has(ci) && !splitOn) {
+    autoSplit.add(ci)
+    splitOn = true
+    document.getElementById('codeBody').classList.add('split-active')
+    document.getElementById('splitBtn').classList.add('active')
+    document.getElementById('splitBtnLabel').textContent = 'Single view'
+    const secondKey = Object.keys(FILE_NAMES)[1] ?? curFile
+    renderDiff(secondKey, document.getElementById('diffTable2'))
+    applyDiffVisibility(ci, false, 'diffTable2', secondKey)
+    // show notification
+    const noticeEl = document.getElementById('autoSplitNotice')
+    noticeEl.classList.add('show')
+    clearTimeout(autoSplitTimer)
+    autoSplitTimer = setTimeout(() => noticeEl.classList.remove('show'), 2600)
+  }
+}
+
+function updateNeilSidebar(ci) {
+  document.querySelectorAll('.commit-card-nav').forEach(card => {
+    const i = +card.dataset.cidx
+    card.classList.toggle('active', i === ci)
+  })
+
+  if (LIVE_MODE) {
+    // Squash hint: show if any two consecutive commits both touch 2+ of the same files
+    const sh = document.getElementById('squashHint')
+    let showSquash = false
+    for (let i = 0; i < COMMITS.length - 1; i++) {
+      const keysA = Object.keys(COMMITS[i].files).filter(k => (COMMITS[i].files[k].adds + COMMITS[i].files[k].dels) > 0)
+      const keysB = Object.keys(COMMITS[i + 1].files).filter(k => (COMMITS[i + 1].files[k].adds + COMMITS[i + 1].files[k].dels) > 0)
+      const overlap = keysA.filter(k => keysB.includes(k)).length
+      if (overlap >= 2) { showSquash = true; break }
+    }
+    sh.classList.toggle('show', showSquash && ci >= 1)
+
+    // Move arc dot proportionally
+    const n = COMMITS.length
+    const dot = document.getElementById('arcDot')
+    if (dot && ci >= 0 && n > 0) {
+      const t = n === 1 ? 0.5 : ci / (n - 1)
+      dot.setAttribute('cx', Math.round(10 + t * 140))
+      dot.setAttribute('cy', '28')
+    }
+
+    // start here badge
+    const sh2 = document.getElementById('startHere')
+    if (sh2) sh2.classList.toggle('show', ci >= 0)
+    return
+  }
+
+  // Demo mode
+  const sh = document.getElementById('squashHint')
+  sh.classList.toggle('show', ci >= 2)
+  const arcPositions = [
+    {cx:10,cy:44}, {cx:57,cy:12}, {cx:104,cy:8}, {cx:150,cy:20}
+  ]
+  const dot = document.getElementById('arcDot')
+  if (dot && ci >= 0 && arcPositions[ci]) {
+    dot.setAttribute('cx', arcPositions[ci].cx)
+    dot.setAttribute('cy', arcPositions[ci].cy)
+  }
+  const sh2 = document.getElementById('startHere')
+  if (sh2) sh2.classList.toggle('show', ci >= 0)
+}
+
+function updateDWZone(ci) {
+  if (LIVE_MODE) return
+  // "Dangerous window" — between commit 1 (JWT) and commit 2 (RBAC)
+  const stripe = document.getElementById('dwStripe')
+  const label  = stripe.querySelector('.dw-stripe-label')
+  const pipZone = document.getElementById('dwPipZone')
+
+  // FIX-4: green flash when window resolves (crossing from commit 1 → 2)
+  if (ci === 2 && prevCommit === 1) {
+    label.textContent = '✓ Window closed'
+    label.classList.add('closed')
+    stripe.classList.add('show')
+    stripe.classList.remove('dw-resolved')
+    void stripe.offsetWidth  // force reflow to restart animation
+    stripe.classList.add('dw-resolved')
+    setTimeout(() => {
+      stripe.classList.remove('show', 'dw-resolved')
+      label.textContent = '⚠ auth gap'
+      label.classList.remove('closed')
+    }, 1700)
+  } else if (ci === 1) {
+    stripe.classList.remove('dw-resolved')
+    stripe.classList.add('show')
+    label.textContent = '⚠ auth gap'
+    label.classList.remove('closed')
+  } else {
+    stripe.classList.remove('show', 'dw-resolved')
+    label.textContent = '⚠ auth gap'
+    label.classList.remove('closed')
+  }
+
+  pipZone.classList.toggle('show', ci >= 1 && ci < 2)
+}
+
+// ══════════════════════════════════════════════════════════════
+// DIFF RENDER
+// ══════════════════════════════════════════════════════════════
+function renderDiff(key, table) {
+  const file = FILES[key]
+  table.innerHTML = ''
+  const glyph = { add:'+', del:'−', ctx:' ' }
+  const gClass = { hi:'hi', md:'md', lo:'lo' }
+  let lastC = -1
+  file.lines.forEach(line => {
+    if (line.t === 'add' && line.c !== lastC && line.c > 0) {
+      const sep = document.createElement('tr')
+      sep.className = 'chunk-sep'
+      sep.innerHTML = `<td colspan="3" class="chunk-lbl">@@ ${COMMITS[line.c].hash} — ${COMMITS[line.c].msg}</td>`
+      table.appendChild(sep)
+      lastC = line.c
+    }
+    const tr = document.createElement('tr')
+    tr.className = `diff-line ${line.t === 'add' ? `add-${line.r}` : line.t}`
+    tr.dataset.commit = line.c; tr.dataset.type = line.t; tr.dataset.risk = line.r || 'lo'
+    const gc = line.t !== 'ctx' ? gClass[line.r] || '' : ''
+    tr.innerHTML = `<td class="td-n">${line.n}</td><td class="td-g ${gc}">${glyph[line.t]||' '}</td><td class="td-c">${line.h||' '}</td>`
+    table.appendChild(tr)
+  })
+}
+
+// ══════════════════════════════════════════════════════════════
+// FILE SELECT
+// ══════════════════════════════════════════════════════════════
+function selectFile(key, el) {
+  document.querySelectorAll('.file-entry').forEach(e => e.classList.remove('active'))
+  if (el) el.classList.add('active')
+  curFile = key
+  document.getElementById('filepath').textContent = `src/${FILES[key].path}`
+  renderDiff(key, document.getElementById('diffTable1'))
+  document.getElementById('pane1Hdr').textContent = FILE_NAMES[key]
+  applyDiffVisibility(curCommit, false, 'diffTable1', key)
+  updateRisk(curCommit)
+  buildLanes()
+}
+
+// ══════════════════════════════════════════════════════════════
+// SPLIT VIEW
+// ══════════════════════════════════════════════════════════════
+function toggleSplit() {
+  splitOn = !splitOn
+  document.getElementById('codeBody').classList.toggle('split-active', splitOn)
+  const btn = document.getElementById('splitBtn')
+  btn.classList.toggle('active', splitOn)
+  document.getElementById('splitBtnLabel').textContent = splitOn ? 'Single view' : 'Split view'
+  if (splitOn) {
+    const secondKey = Object.keys(FILE_NAMES)[1] ?? curFile
+    renderDiff(secondKey, document.getElementById('diffTable2'))
+    applyDiffVisibility(curCommit, false, 'diffTable2', secondKey)
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// VIEW TOGGLE
+// ══════════════════════════════════════════════════════════════
+function setView(v) {
+  curView = v
+  document.documentElement.dataset.view = v
+  document.getElementById('btnJames').classList.toggle('active', v === 'james')
+  document.getElementById('btnNeil').classList.toggle('active', v === 'neil')
+  updateToasts(curCommit, false)
+}
+
+// ══════════════════════════════════════════════════════════════
+// PLAYBACK
+// ══════════════════════════════════════════════════════════════
+function togglePlay() {
+  playing = !playing
+  document.getElementById('playBtn').classList.toggle('playing', playing)
+  if (playing) {
+    if (sliderVal >= 100) { sliderVal = 0; document.getElementById('slider').value = 0; onSlide(0) }
+    tick()
+  } else { clearTimeout(playTimer) }
+}
+function tick() {
+  if (!playing) return
+  sliderVal = Math.min(sliderVal + 0.7, 100)
+  document.getElementById('slider').value = sliderVal
+  onSlide(sliderVal)
+  if (sliderVal >= 100) { playing = false; document.getElementById('playBtn').classList.remove('playing'); return }
+  const atBound = CPCTS.some(p => Math.abs(sliderVal - p) < 0.9)
+  playTimer = setTimeout(tick, atBound ? 720 : 20)
+}
+
+// ══════════════════════════════════════════════════════════════
+// KEYBOARD
+// ══════════════════════════════════════════════════════════════
+function stepCommit(dir) {
+  const next = Math.min(Math.max(curCommit + dir, 0), COMMITS.length - 1)
+  if (next !== curCommit || curCommit < 0) jumpTo(Math.max(next, 0))
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return
+  if (e.key === ' ')          { e.preventDefault(); togglePlay() }
+  if (e.key === 'ArrowRight') stepCommit(1)
+  if (e.key === 'ArrowLeft')  stepCommit(-1)
+  if (e.key === 's')          toggleSplit()
+  if (e.key === 'r')          setView(curView === 'james' ? 'neil' : 'james')
+})
+
+init()
+</script>
+</body>
+</html>

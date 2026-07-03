@@ -1,0 +1,57 @@
+/* DiffCast design tokens
+ * Source of truth for all extension UI — import this before any component CSS.
+ * Mirrors experiments/01-diff-animation/index.html :root variables exactly.
+ */
+
+:host, :root {
+  /* ── Surfaces ── */
+  --bg:          #0a0c11;
+  --surface:     #12151d;
+  --panel:       #1a1d27;
+
+  /* ── Borders ── */
+  --border:      #232838;
+  --border-hi:   #2e3348;
+
+  /* ── Text ── */
+  --text-bright: #e8e4d9;
+  --text:        #a09b8c;
+  --text-dim:    #5c5850;
+
+  /* ── Accent (interactive blue) ── */
+  --accent:      #4f6ef7;
+  --accent-bg:   rgba(79, 110, 247, 0.08);
+  --accent-glow: rgba(79, 110, 247, 0.35);
+
+  /* ── Typography ── */
+  --font-sans:  'DM Sans', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Cascadia Code', monospace;
+  --font-serif: 'Lora', Georgia, serif;
+  --font-display: 'Syne', var(--font-sans);
+
+  /* ── Spacing scale (4px base) ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+
+  /* ── Z-index layers ── */
+  --z-overlay:   100;
+  --z-toast:     200;
+  --z-modal:     300;
+
+  /* ── Animation timing ── */
+  --dur-fast:    120ms;
+  --dur-base:    250ms;
+  --dur-slow:    400ms;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Border radius ── */
+  --radius-sm:   3px;
+  --radius:      5px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+}

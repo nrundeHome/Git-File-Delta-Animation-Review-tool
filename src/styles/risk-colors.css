@@ -1,0 +1,108 @@
+/* DiffCast risk color palette — WCAG AA verified
+ *
+ * TWO color sets — choose by surface:
+ *
+ *   On white (#ffffff) — used in GitHub page injection (pr-list badges, labels):
+ *     --risk-hi  #cf222e  →  5.36:1 ✓
+ *     --risk-md  #9a6700  →  4.87:1 ✓
+ *     --risk-lo  #1a7f37  →  5.08:1 ✓
+ *
+ *   On dark  (#0a0c11) — used in the DiffCast Shadow DOM panel (diff viewer, pills):
+ *     --risk-hi-d  #f85149  →  5.84:1 ✓
+ *     --risk-md-d  #d4a017  →  8.23:1 ✓
+ *     --risk-lo-d  #3fb950  →  7.70:1 ✓
+ *
+ * Thresholds mirror src/config/api.js RISK_THRESHOLDS: lo 0–33, md 34–66, hi 67–100.
+ * Changing any value requires re-running tests/unit/wcag.test.js.
+ */
+
+@import './variables.css';
+
+:host, :root {
+  /* ── Base colors: WCAG AA on white — for light-surface injection (PR list) ── */
+  --risk-hi:     #cf222e;
+  --risk-md:     #9a6700;
+  --risk-lo:     #1a7f37;
+
+  /* ── Dark-surface colors: WCAG AA on #0a0c11 — for Shadow DOM panel ── */
+  --risk-hi-d:   #f85149;
+  --risk-md-d:   #d4a017;
+  --risk-lo-d:   #3fb950;
+
+  /* ── Backgrounds (low-opacity tints) ── */
+  --risk-hi-bg:  rgba(207, 34,  46,  0.12);
+  --risk-md-bg:  rgba(154, 103, 0,   0.12);
+  --risk-lo-bg:  rgba(26,  127, 55,  0.10);
+
+  /* ── Glow / border accents ── */
+  --risk-hi-gl:  rgba(207, 34,  46,  0.30);
+  --risk-md-gl:  rgba(154, 103, 0,   0.28);
+  --risk-lo-gl:  rgba(26,  127, 55,  0.28);
+
+  /* ── Diff line tints (applied to table rows) ── */
+  --diff-add-hi: rgba(207, 34,  46,  0.14);
+  --diff-add-md: rgba(154, 103, 0,   0.11);
+  --diff-add-lo: rgba(26,  127, 55,  0.09);
+  --diff-del:    rgba(207, 34,  46,  0.08);
+}
+
+/* ── Utility classes for risk-colored elements ── */
+
+.risk-hi { color: var(--risk-hi); }
+.risk-md { color: var(--risk-md); }
+.risk-lo { color: var(--risk-lo); }
+
+/* Diff line backgrounds — applied to <tr> elements */
+.add-hi { background: var(--diff-add-hi); }
+.add-md { background: var(--diff-add-md); }
+.add-lo { background: var(--diff-add-lo); }
+.del    { background: var(--diff-del); opacity: 0.6; }
+
+/* Glow animation on newly visible lines */
+@keyframes flash-hi {
+  0%   { background: rgba(207, 34,  46,  0.35); }
+  100% { background: var(--diff-add-hi); }
+}
+@keyframes flash-md {
+  0%   { background: rgba(154, 103, 0,   0.30); }
+  100% { background: var(--diff-add-md); }
+}
+@keyframes flash-lo {
+  0%   { background: rgba(26,  127, 55,  0.28); }
+  100% { background: var(--diff-add-lo); }
+}
+
+.fl-hi { animation: flash-hi var(--dur-slow) var(--ease-out) forwards; }
+.fl-md { animation: flash-md var(--dur-slow) var(--ease-out) forwards; }
+.fl-lo { animation: flash-lo var(--dur-slow) var(--ease-out) forwards; }
+
+/* Risk pill component
+ * Default: on-white (GitHub PR list injection)
+ * .on-dark: Shadow DOM panel (dark #0a0c11 surface) — uses -d color variants
+ */
+.risk-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  border: 1px solid;
+  cursor: default;
+}
+/* On-white surface (default) */
+.risk-pill.rp-hi { color: var(--risk-hi);   border-color: var(--risk-hi-gl); background: var(--risk-hi-bg); }
+.risk-pill.rp-md { color: var(--risk-md);   border-color: var(--risk-md-gl); background: var(--risk-md-bg); }
+.risk-pill.rp-lo { color: var(--risk-lo);   border-color: var(--risk-lo-gl); background: var(--risk-lo-bg); }
+/* On-dark surface: use brighter -d variants for WCAG AA compliance */
+.risk-pill.on-dark.rp-hi { color: var(--risk-hi-d); border-color: rgba(248, 81, 73,  0.35); background: rgba(248, 81, 73,  0.10); }
+.risk-pill.on-dark.rp-md { color: var(--risk-md-d); border-color: rgba(212, 160, 23, 0.35); background: rgba(212, 160, 23, 0.10); }
+.risk-pill.on-dark.rp-lo { color: var(--risk-lo-d); border-color: rgba(63,  185, 80, 0.35); background: rgba(63,  185, 80, 0.10); }
+.risk-pill .rp-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* Reduce motion: disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  .fl-hi, .fl-md, .fl-lo { animation: none; }
+}

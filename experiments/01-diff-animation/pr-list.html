@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en" data-pills="on">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiffCast — PR List Risk Badges</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Lora:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --bg:         #0a0c11;
+  --surface:    #12151d;
+  --panel:      #1a1d27;
+  --border:     #232838;
+  --text-bright:#e8e4d9;
+  --text:       #a09b8c;
+  --text-dim:   #5c5850;
+  --accent:     #4f6ef7;
+  --accent-bg:  rgba(79,110,247,0.08);
+  --accent-glow:rgba(79,110,247,0.35);
+
+  --risk-hi:    #cf222e;
+  --risk-hi-bg: rgba(207,34,46,0.12);
+  --risk-hi-gl: rgba(207,34,46,0.30);
+  --risk-md:    #9a6700;
+  --risk-md-bg: rgba(154,103,0,0.12);
+  --risk-md-gl: rgba(154,103,0,0.28);
+  --risk-lo:    #1a7f37;
+  --risk-lo-bg: rgba(26,127,55,0.10);
+  --risk-lo-gl: rgba(26,127,55,0.28);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text-bright);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  min-height: 100vh;
+}
+
+/* ── GitHub header ─────────────────────────────── */
+.gh-header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 20px;
+}
+.gh-logo { display: flex; align-items: center; }
+.gh-nav { display: flex; gap: 4px; }
+.gh-nav-item {
+  padding: 5px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text); cursor: pointer;
+}
+.gh-nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-bright); }
+.gh-nav-item.active { font-weight: 600; color: var(--text-bright); }
+.gh-search {
+  flex: 1; max-width: 280px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 12px; color: var(--text); font-size: 12px;
+}
+.gh-user { width: 28px; height: 28px; border-radius: 50%; background: var(--border); margin-left: auto; }
+
+/* ── page layout ───────────────────────────────── */
+.page {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+
+/* ── demo banner ───────────────────────────────── */
+.demo-banner {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-glow);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.banner-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 800;
+  color: var(--accent);
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+}
+.banner-orb {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.banner-text {
+  font-size: 12.5px; color: var(--text); line-height: 1.4;
+}
+.banner-text strong { color: var(--text-bright); }
+.banner-toggle-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.banner-lbl { font-size: 11.5px; color: var(--text); }
+.toggle-btn {
+  display: flex;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.tb-opt {
+  padding: 5px 12px;
+  font-size: 11.5px; font-weight: 500;
+  cursor: pointer; border: none;
+  background: transparent;
+  color: var(--text);
+  transition: background 0.15s, color 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.tb-opt.on { background: var(--surface); color: var(--text-bright); }
+
+/* ── filter row ─────────────────────────────────── */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.filter-tab {
+  padding: 6px 14px; border-radius: 6px;
+  font-size: 13px; color: var(--text); cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid transparent;
+}
+.filter-tab:hover { background: var(--surface); color: var(--text-bright); }
+.filter-tab.active {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--text-bright);
+  font-weight: 500;
+}
+.filter-count {
+  font-size: 11px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 1px 6px;
+}
+.filter-right { margin-left: auto; display: flex; gap: 6px; }
+.filter-action {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 5px;
+}
+.filter-action:hover { background: var(--surface); color: var(--text-bright); }
+.filter-caret { font-size: 9px; opacity: 0.5; }
+
+/* ── PR list ─────────────────────────────────────── */
+.pr-list {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pr-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  position: relative;
+}
+.pr-item:last-child { border-bottom: none; }
+.pr-item:hover { background: rgba(255,255,255,0.015); }
+
+.pr-state-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.pr-state-icon svg { display: block; }
+
+.pr-body { flex: 1; min-width: 0; }
+.pr-title-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+.pr-title {
+  font-size: 14px; font-weight: 500; color: var(--text-bright);
+  cursor: pointer; text-decoration: none;
+  line-height: 1.3;
+}
+.pr-title:hover { color: #58a6ff; }
+.pr-num { font-size: 13px; color: var(--text); flex-shrink: 0; }
+
+/* labels */
+.pr-label {
+  font-size: 10.5px; font-weight: 500;
+  padding: 2px 8px; border-radius: 20px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+.label-bug      { color: #f85149; border-color: rgba(248,81,73,0.4); background: rgba(248,81,73,0.1); }
+.label-feat     { color: #3fb950; border-color: rgba(63,185,80,0.4); background: rgba(63,185,80,0.1); }
+.label-breaking { color: #ffa657; border-color: rgba(255,166,87,0.4); background: rgba(255,166,87,0.1); }
+.label-docs     { color: #58a6ff; border-color: rgba(88,166,255,0.4); background: rgba(88,166,255,0.1); }
+
+.pr-meta { font-size: 11.5px; color: var(--text); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.pr-meta strong { color: var(--text-bright); }
+
+/* draft badge */
+.draft-badge {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 1px 7px;
+}
+
+/* review requested */
+.review-icon { color: var(--text); }
+
+/* ── RISK PILLS (injected by DiffCast) ────────────── */
+.risk-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; font-weight: 500;
+  border: 1px solid;
+  cursor: default;
+  flex-shrink: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  position: relative;
+  top: -1px;
+}
+.rp-hi { color: var(--risk-hi); border-color: var(--risk-hi-gl); background: var(--risk-hi-bg); }
+.rp-md { color: var(--risk-md); border-color: var(--risk-md-gl); background: var(--risk-md-bg); }
+.rp-lo { color: var(--risk-lo); border-color: var(--risk-lo-gl); background: var(--risk-lo-bg); }
+.rp-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* transition in/out */
+[data-pills="off"] .risk-pill {
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+}
+[data-pills="on"] .risk-pill {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* DW tag on pill row */
+.dw-tag {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em;
+  padding: 1px 6px; border-radius: 3px;
+  background: var(--risk-hi-bg);
+  border: 1px solid var(--risk-hi-gl);
+  color: var(--risk-hi);
+  transition: opacity 0.25s, transform 0.25s;
+  flex-shrink: 0;
+}
+[data-pills="off"] .dw-tag { opacity: 0; transform: scale(0.7); pointer-events: none; }
+[data-pills="on"] .dw-tag  { opacity: 1; transform: scale(1); }
+
+/* review count pips */
+.pr-right {
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  align-items: flex-end; gap: 6px;
+  padding-top: 2px;
+}
+.pr-checks { display: flex; gap: 5px; align-items: center; }
+.chk { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; }
+.chk-pass { background: rgba(63,185,80,0.15); color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
+.chk-fail { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
+.chk-pend { background: rgba(187,128,9,0.15); color: #d29922; border: 1px solid rgba(187,128,9,0.3); }
+.pr-avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--border); }
+
+/* ── open DiffCast CTA ─────────────────────────── */
+.dc-cta {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600;
+  color: var(--accent);
+  padding: 4px 10px;
+  border: 1px solid var(--accent-glow);
+  border-radius: 5px;
+  background: var(--accent-bg);
+  cursor: pointer;
+  transition: background 0.12s;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.dc-cta:hover { background: rgba(79,110,247,0.18); }
+[data-pills="off"] .dc-cta { display: none; }
+
+/* ── callout ─────────────────────────────────────── */
+.callout {
+  margin-top: 24px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+.callout-item { display: flex; flex-direction: column; gap: 5px; }
+.callout-icon { font-size: 20px; margin-bottom: 3px; }
+.callout-title { font-size: 13px; font-weight: 600; color: var(--text-bright); }
+.callout-body  { font-size: 12px; color: var(--text); line-height: 1.45; }
+</style>
+</head>
+<body>
+
+<header class="gh-header">
+  <div class="gh-logo">
+    <div style="display:flex;align-items:center;gap:7px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text-bright);letter-spacing:-0.02em;">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent-glow);"></div>
+      DiffCast
+    </div>
+  </div>
+  <nav class="gh-nav">
+    <div class="gh-nav-item active">Pull requests</div>
+    <div class="gh-nav-item">Issues</div>
+    <div class="gh-nav-item">Marketplace</div>
+    <div class="gh-nav-item">Explore</div>
+  </nav>
+  <input class="gh-search" placeholder="Search or jump to…" readonly>
+  <div class="gh-user"></div>
+</header>
+
+<div class="page">
+
+  <!-- DiffCast banner -->
+  <div class="demo-banner">
+    <div class="banner-logo"><div class="banner-orb"></div>DiffCast</div>
+    <div class="banner-text">
+      <strong>Risk scores injected by DiffCast</strong> — colored pills show aggregate diff risk before you open a PR.
+      Toggle off to see what GitHub shows without it.
+    </div>
+    <div class="banner-toggle-wrap">
+      <span class="banner-lbl">Risk pills</span>
+      <div class="toggle-btn">
+        <button class="tb-opt on" id="btnOn"  onclick="setPills('on')">ON</button>
+        <button class="tb-opt"   id="btnOff" onclick="setPills('off')">OFF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- filter row -->
+  <div class="filter-row">
+    <div class="filter-tab active">
+      ● Open <span class="filter-count">6</span>
+    </div>
+    <div class="filter-tab">
+      ✓ Closed <span class="filter-count">184</span>
+    </div>
+    <div class="filter-right">
+      <button class="filter-action">Author ▾</button>
+      <button class="filter-action">Label ▾</button>
+      <button class="filter-action">Sort ▾</button>
+    </div>
+  </div>
+
+  <!-- PR list -->
+  <div class="pr-list">
+
+    <!-- PR 1 — HIGH risk (auth middleware) -->
+    <div class="pr-item">
+      <div class="pr-state-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#3fb950">
+          <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z"/>
+        </svg>
+      </div>
+      <div class="pr-body">
+        <div class="pr-title-row">
+          <a class="pr-title">feat(auth): add JWT middleware, role-based access control &amp; rate limiting</a>
+          <span class="pr-num">#214</span>
+          <span class="pr-label label-breaking">breaking</span>
+          <span class="risk-pill rp-hi"><span class="rp-dot"></span>84</span>
+          <span class="dw-tag">⚠ DW</span>
+          <a class="dc-cta" href="index.html">▶ DiffCast</a>
+        </div>
+        <div class="pr-meta">
+          opened 2 hours ago by <strong>neil.runde</strong> · 4 commits · 3 files · <strong>+147 −23</strong>
+          · Review requested from <strong>james.owen</strong>
+        </div>
+      </div>
+      <div class="pr-right">
+        <div class="pr-checks">
+          <div class="chk chk-pass">✓</div>
+          <div class="chk chk-pend">◉</div>
+        </div>
+        <div class="pr-avatar"></div>
+      </div>
+    </div>
+
+    <!-- PR 2 — MEDIUM risk -->
+    <div class="pr-item">
+      <div class="pr-state-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#3fb950">
+          <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z"/>
+        </svg>
+      </div>
+      <div class="pr-body">
+        <div class="pr-title-row">
+          <a class="pr-title">refactor(db): migrate user sessions to Redis with TTL management</a>
+          <span class="pr-num">#211</span>
+          <span class="pr-label label-feat">refactor</span>
+          <span class="risk-pill rp-md"><span class="rp-dot"></span>57</span>
+        </div>
+        <div class="pr-meta">
+          opened yesterday by <strong>sarah.k</strong> · 7 commits · 8 files · <strong>+312 −88</strong>
+        </div>
+      </div>
+      <div class="pr-right">
+        <div class="pr-checks">
+          <div class="chk chk-pass">✓</div>
+          <div class="chk chk-pass">✓</div>
+        </div>
+        <div class="pr-avatar"></div>
+      </div>
+    </div>
+
+    <!-- PR 3 — LOW risk (docs) -->
+    <div class="pr-item">
+      <div class="pr-state-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#3fb950">
+          <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z"/>
+        </svg>
+      </div>
+      <div class="pr-body">
+        <div class="pr-title-row">
+          <a class="pr-title">docs: update API reference for v2 endpoints and error codes</a>
+          <span class="pr-num">#209</span>
+          <span class="pr-label label-docs">docs</span>
+          <span class="risk-pill rp-lo"><span class="rp-dot"></span>11</span>
+        </div>
+        <div class="pr-meta">
+          opened 2 days ago by <strong>priya.m</strong> · 2 commits · 4 files · <strong>+208 −44</strong>
+        </div>
+      </div>
+      <div class="pr-right">
+        <div class="pr-checks">
+          <div class="chk chk-pass">✓</div>
+        </div>
+        <div class="pr-avatar"></div>
+      </div>
+    </div>
+
+    <!-- PR 4 — HIGH risk (schema migration) -->
+    <div class="pr-item">
+      <div class="pr-state-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#3fb950">
+          <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z"/>
+        </svg>
+      </div>
+      <div class="pr-body">
+        <div class="pr-title-row">
+          <a class="pr-title">feat(db): add subscription_tier + feature_flags columns with backfill migration</a>
+          <span class="pr-num">#207</span>
+          <span class="pr-label label-breaking">migration</span>
+          <span class="risk-pill rp-hi"><span class="rp-dot"></span>79</span>
+        </div>
+        <div class="pr-meta">
+          opened 3 days ago by <strong>neil.runde</strong> · 3 commits · 2 files · <strong>+94 −5</strong>
+          · <span style="color:#f85149">✗ 2 checks failing</span>
+        </div>
+      </div>
+      <div class="pr-right">
+        <div class="pr-checks">
+          <div class="chk chk-fail">✗</div>
+          <div class="chk chk-fail">✗</div>
+        </div>
+        <div class="pr-avatar"></div>
+      </div>
+    </div>
+
+    <!-- PR 5 — DRAFT, MEDIUM risk -->
+    <div class="pr-item">
+      <div class="pr-state-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e">
+          <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z"/>
+        </svg>
+      </div>
+      <div class="pr-body">
+        <div class="pr-title-row">
+          <a class="pr-title">WIP: experiment with streaming SSE responses for live progress</a>
+          <span class="pr-num">#203</span>
+          <span class="draft-badge">Draft</span>
+          <span class="risk-pill rp-md"><span class="rp-dot"></span>41</span>
+        </div>
+        <div class="pr-meta">
+          opened 5 days ago by <strong>alex.t</strong> · 9 commits · 6 files · <strong>+421 −37</strong>
+        </div>
+      </div>
+      <div class="pr-right">
+        <div class="pr-checks">
+          <div class="chk chk-pend">◉</div>
+        </div>
+        <div class="pr-avatar"></div>
+      </div>
+    </div>
+
+    <!-- PR 6 — LOW risk (tests only) -->
+    <div class="pr-item">
+      <div class="pr-state-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#3fb950">
+          <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z"/>
+        </svg>
+      </div>
+      <div class="pr-body">
+        <div class="pr-title-row">
+          <a class="pr-title">test: add Playwright E2E suite for checkout flow edge cases</a>
+          <span class="pr-num">#198</span>
+          <span class="pr-label label-feat">tests</span>
+          <span class="risk-pill rp-lo"><span class="rp-dot"></span>18</span>
+        </div>
+        <div class="pr-meta">
+          opened 6 days ago by <strong>james.owen</strong> · 5 commits · 11 files · <strong>+640 −12</strong>
+        </div>
+      </div>
+      <div class="pr-right">
+        <div class="pr-checks">
+          <div class="chk chk-pass">✓</div>
+          <div class="chk chk-pass">✓</div>
+        </div>
+        <div class="pr-avatar"></div>
+      </div>
+    </div>
+
+  </div><!-- /pr-list -->
+
+  <!-- callout -->
+  <div class="callout">
+    <div class="callout-item">
+      <div class="callout-icon">🔴</div>
+      <div class="callout-title">High risk (67–100)</div>
+      <div class="callout-body">Auth paths, config, schema migrations. Touch these last, review first. Open in DiffCast to step through commit-by-commit.</div>
+    </div>
+    <div class="callout-item">
+      <div class="callout-icon">🟡</div>
+      <div class="callout-title">Medium risk (34–66)</div>
+      <div class="callout-body">Service logic, API layer changes. Worth a second reviewer. Risk is from size + churn, not just file type.</div>
+    </div>
+    <div class="callout-item">
+      <div class="callout-icon">🟢</div>
+      <div class="callout-title">Low risk (0–33)</div>
+      <div class="callout-body">Docs, tests, isolated utilities. Approve with confidence. Score accounts for test file discounting (0.4× weight).</div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+function setPills(v) {
+  document.documentElement.dataset.pills = v
+  document.getElementById('btnOn').classList.toggle('on', v === 'on')
+  document.getElementById('btnOff').classList.toggle('on', v === 'off')
+}
+</script>
+</body>
+</html>

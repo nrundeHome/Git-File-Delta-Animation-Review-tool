@@ -1,0 +1,35 @@
+{
+  "name": "diffcast",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Animated code review extension for GitHub — replays PR diffs with risk visualization",
+  "scripts": {
+    "dev":            "vite",
+    "build":          "vite build",
+    "build:watch":    "vite build --watch",
+    "preview":        "vite preview",
+    "test":           "vitest run",
+    "test:unit":      "vitest run tests/unit",
+    "test:integration":"vitest run tests/integration",
+    "test:behavior":  "playwright test tests/behavior",
+    "test:watch":     "vitest",
+    "test:coverage":  "vitest run --coverage",
+    "test:failures":  "vitest run --reporter=verbose --bail 1",
+    "mock-api":       "node scripts/mock-api.js",
+    "guard":          "node scripts/guard.js",
+    "guard:fix":      "node scripts/guard.js --fix",
+    "health":         "node scripts/health.js",
+    "agents:cleanup": "node scripts/agent-os/cleanup-worktrees.js",
+    "loop:archive":   "node scripts/agent-os/archive-loop-state.js"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "@crxjs/vite-plugin": "^2.0.0-beta.28",
+    "vitest": "^2.1.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "@playwright/test": "^1.47.0"
+  },
+  "dependencies": {
+    "acorn": "^8.12.0"
+  }
+}

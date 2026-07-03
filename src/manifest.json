@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "DiffCast — Animated PR Review",
+  "version": "0.1.0",
+  "description": "Replay pull requests as animated diffs with risk visualization. See where the danger is before reading a line of code.",
+  "icons": {
+    "16":  "icons/icon-16.png",
+    "48":  "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "storage",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://api.github.com/*",
+    "https://github.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/*/pull/*", "https://github.com/*/*/pulls*"],
+      "js":      ["src/content.js"],
+      "css":     [],
+      "run_at":  "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "DiffCast"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/diffcast/*", "src/styles/*"],
+      "matches":   ["https://github.com/*"]
+    }
+  ]
+}

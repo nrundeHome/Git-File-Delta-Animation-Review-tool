@@ -1,0 +1,96 @@
+/* DiffCast animation utilities
+ *
+ * Used by the GitHub page injection layer (content.js PR list badges, toasts).
+ * The Shadow DOM panel (app.js) inlines its own animation CSS.
+ *
+ * All durations reference variables.css tokens: --dur-fast/base/slow, --ease-out.
+ * Every animated element has a prefers-reduced-motion override at the bottom.
+ */
+
+@import './variables.css';
+
+/* ── Toast notifications ──────────────────────────────────────────────────── */
+
+@keyframes dc-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes dc-toast-out {
+  from { opacity: 1; transform: translateY(0);   }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+
+.dc-toast-enter {
+  animation: dc-toast-in var(--dur-base) var(--ease-out) forwards;
+}
+
+.dc-toast-exit {
+  animation: dc-toast-out var(--dur-fast) var(--ease-out) forwards;
+}
+
+/* ── PR list risk badge — ambient pulse on page load ─────────────────────── */
+
+@keyframes dc-badge-in {
+  0%   { opacity: 0; transform: scale(0.85); }
+  70%  { transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.dc-badge-enter {
+  animation: dc-badge-in var(--dur-base) var(--ease-out) forwards;
+}
+
+/* Stagger badge reveal — nth-child delay injected inline per badge */
+.dc-badge-stagger {
+  opacity: 0;
+  animation: dc-badge-in var(--dur-base) var(--ease-out) forwards;
+}
+
+/* ── DiffCast tab injection into GitHub's tab bar ────────────────────────── */
+
+@keyframes dc-tab-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+#diffcast-tab {
+  animation: dc-tab-in var(--dur-base) var(--ease-out) forwards;
+}
+
+/* ── Loading spinner (content.js loading state) ──────────────────────────── */
+
+@keyframes dc-spin {
+  to { transform: rotate(360deg); }
+}
+
+.dc-spinner {
+  animation: dc-spin 0.75s linear infinite;
+}
+
+/* ── Overlay slide-up (host panel entering viewport) ─────────────────────── */
+
+@keyframes dc-panel-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#diffcast-host {
+  animation: dc-panel-in var(--dur-slow) var(--ease-out) forwards;
+}
+
+/* ── Reduce motion: disable everything ───────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .dc-toast-enter,
+  .dc-toast-exit,
+  .dc-badge-enter,
+  .dc-badge-stagger,
+  #diffcast-tab,
+  .dc-spinner,
+  #diffcast-host {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
